@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 
 import Grammar from '../components/Grammar.jsx';
 import Flashcards from '../components/Flashcards.jsx';
+import Listening from '../components/Listening.jsx';
 
 import {
     BookOpen,
@@ -68,6 +69,10 @@ export default function InitialPage() {
 
     if (currentView === 'FlashCards') { // Use o 'label' do seu array de categorias
         return <Flashcards setCurrentView={setCurrentView}  color={"#ed5215"}/>;
+    }
+
+    if (currentView === 'Listening') { // Use o 'label' do seu array de categorias
+        return <Listening setCurrentView={setCurrentView} color={"#F1C40F"}/>;
     }
 
     return (
