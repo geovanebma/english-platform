@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Volume2, Loader2, Zap } from 'lucide-react';
 
-// Variáveis Globais (Assumindo que estão acessíveis no ambiente React)
+// Variáveis Globais: Manter apiKey vazia, o ambiente de execução irá injetar se necessário.
 const apiKey = ""; 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+// A URL base da API
+const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
 
 // Helper para converter base64 em ArrayBuffer
 const base64ToArrayBuffer = (base64) => {
+    // Garantir que a string base64 é válida antes de tentar decodificar
+    if (!base64) return new ArrayBuffer(0);
     const binaryString = atob(base64);
     const len = binaryString.length;
     const bytes = new Uint8Array(len);
@@ -66,6 +69,9 @@ const pcmToWav = (pcm16, sampleRate) => {
 
 // Função de API principal
 const generateAudio = async (text, voiceName) => {
+    // Constrói a URL para garantir que a chave seja adicionada corretamente
+    const apiUrl = `${API_BASE_URL}?key=${apiKey}`;
+
     const payload = {
         contents: [{
             parts: [{ text: text }]
@@ -85,7 +91,7 @@ const generateAudio = async (text, voiceName) => {
     // Implementação de Backoff Exponencial
     for (let i = 0; i < 3; i++) {
         try {
-            response = await fetch(API_URL, {
+            response = await fetch(apiUrl, { // Usa a variável apiUrl
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -98,8 +104,9 @@ const generateAudio = async (text, voiceName) => {
                 const mimeType = part?.inlineData?.mimeType;
 
                 if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    // Tenta extrair a taxa de amostragem, caso contrário usa 16000
                     const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000; // Default 16000 Hz
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000; 
                     const pcmData = base64ToArrayBuffer(audioData);
                     const pcm16 = new Int16Array(pcmData);
                     const wavBlob = pcmToWav(pcm16, sampleRate);
@@ -110,7 +117,9 @@ const generateAudio = async (text, voiceName) => {
                 console.warn(`Rate limit exceeded. Retrying in ${2 ** i}s...`);
                 await new Promise(resolve => setTimeout(resolve, (2 ** i) * 1000));
             } else {
-                throw new Error(`API Error: ${response.statusText}`);
+                // Lança um erro para o bloco catch
+                const errorBody = await response.text();
+                throw new Error(`API Error: ${response.status} - ${errorBody}`);
             }
         } catch (error) {
             console.error('Fetch error:', error);
@@ -127,12 +136,14 @@ function ListeningPage({ setCurrentView }) {
     const [text, setText] = useState('Welcome to the listening module. Click the button to generate and play this sentence.');
     const [audioUrl, setAudioUrl] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     
     const handleGenerateAndPlay = async () => {
         if (!text) return;
 
         setLoading(true);
         setAudioUrl(null);
+        setError(null); // Limpa erros anteriores
 
         try {
             const url = await generateAudio(text, 'Zephyr'); // Usando a voz 'Zephyr' (Bright)
@@ -141,11 +152,11 @@ function ListeningPage({ setCurrentView }) {
                 const audio = new Audio(url);
                 audio.play();
             } else {
-                alert('Erro ao gerar áudio. Verifique o console para detalhes.');
+                setError('Erro ao gerar áudio. Verifique o console para detalhes.');
             }
-        } catch (error) {
-            console.error("Failed to generate audio:", error);
-            alert('Falha crítica ao conectar com a API de áudio.');
+        } catch (err) {
+            console.error("Failed to generate audio:", err);
+            setError('Falha crítica ao conectar com a API de áudio. (403 Forbidden geralmente indica problema na chave).');
         } finally {
             setLoading(false);
         }
@@ -198,6 +209,12 @@ function ListeningPage({ setCurrentView }) {
                         <Zap className="w-4 h-4 mr-2" />
                         Áudio gerado com sucesso!
                     </p>
+                )}
+
+                {error && (
+                    <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                        <strong>Erro:</strong> {error}
+                    </div>
                 )}
             </div>
             
