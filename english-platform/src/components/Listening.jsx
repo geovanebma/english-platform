@@ -2,9 +2,18 @@ import React, { useState } from 'react';
 import { Volume2, Loader2, Zap } from 'lucide-react';
 
 // Variáveis Globais: Manter apiKey vazia, o ambiente de execução irá injetar se necessário.
-const apiKey = ""; 
+const apiKey = "AIzaSyDTfuMCi5WlpKcDOAz1NoUwAytj1vs4gW4"; 
 // A URL base da API
 const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
+
+// --- DADOS DE LIÇÃO E TESTE ESTÁTICOS ---
+// Usando uma estrutura simples que você buscou do PostgreSQL (main_text e translation_pt)
+const staticLesson = {
+    title: "Teste de Voz Simples",
+    main_text: "The sun is shining and I am learning English through technology.",
+    translation_pt: "O sol está brilhando e estou aprendendo Inglês através da tecnologia."
+};
+// ----------------------------------------
 
 // Helper para converter base64 em ArrayBuffer
 const base64ToArrayBuffer = (base64) => {
@@ -68,8 +77,10 @@ const pcmToWav = (pcm16, sampleRate) => {
 };
 
 // Função de API principal
+// O erro 403 pode ser devido ao uso de "gemini-2.5-flash-preview-tts" em alguns ambientes.
+// Vamos tentar usar a voz padrão 'Zephyr' e garantir o uso correto da URL.
 const generateAudio = async (text, voiceName) => {
-    // Constrói a URL para garantir que a chave seja adicionada corretamente
+    // O ambiente de execução Canvas/Immersive é responsável por injetar a chave se a URL tiver 'key='
     const apiUrl = `${API_BASE_URL}?key=${apiKey}`;
 
     const payload = {
@@ -80,7 +91,7 @@ const generateAudio = async (text, voiceName) => {
             responseModalities: ["AUDIO"],
             speechConfig: {
                 voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: voiceName || "Kore" } // Voz padrão 'Kore'
+                    prebuiltVoiceConfig: { voiceName: voiceName || "Zephyr" } // Usando 'Zephyr'
                 }
             }
         },
@@ -91,7 +102,7 @@ const generateAudio = async (text, voiceName) => {
     // Implementação de Backoff Exponencial
     for (let i = 0; i < 3; i++) {
         try {
-            response = await fetch(apiUrl, { // Usa a variável apiUrl
+            response = await fetch(apiUrl, { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -104,7 +115,6 @@ const generateAudio = async (text, voiceName) => {
                 const mimeType = part?.inlineData?.mimeType;
 
                 if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    // Tenta extrair a taxa de amostragem, caso contrário usa 16000
                     const sampleRateMatch = mimeType.match(/rate=(\d+)/);
                     const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000; 
                     const pcmData = base64ToArrayBuffer(audioData);
@@ -112,7 +122,10 @@ const generateAudio = async (text, voiceName) => {
                     const wavBlob = pcmToWav(pcm16, sampleRate);
                     return URL.createObjectURL(wavBlob);
                 }
-                return null;
+                // Se a API retornar OK, mas sem áudio (pode ser problema na requisição)
+                const errorBody = JSON.stringify(result, null, 2);
+                console.error("API returned OK but no audio part:", errorBody);
+                throw new Error("API OK, mas falha ao extrair áudio. Verifique a resposta da API.");
             } else if (response.status === 429) {
                 console.warn(`Rate limit exceeded. Retrying in ${2 ** i}s...`);
                 await new Promise(resolve => setTimeout(resolve, (2 ** i) * 1000));
@@ -122,7 +135,7 @@ const generateAudio = async (text, voiceName) => {
                 throw new Error(`API Error: ${response.status} - ${errorBody}`);
             }
         } catch (error) {
-            console.error('Fetch error:', error);
+            console.error('Fetch error during attempt:', i + 1, error);
             if (i === 2) throw error; 
             await new Promise(resolve => setTimeout(resolve, (2 ** i) * 1000));
         }
@@ -133,20 +146,21 @@ const generateAudio = async (text, voiceName) => {
 
 // Componente principal
 function ListeningPage({ setCurrentView }) {
-    const [text, setText] = useState('Welcome to the listening module. Click the button to generate and play this sentence.');
     const [audioUrl, setAudioUrl] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     
-    const handleGenerateAndPlay = async () => {
-        if (!text) return;
+    // Função para lidar com a geração e reprodução
+    const handleGenerateAndPlay = async (textToSpeak) => {
+        if (!textToSpeak) return;
 
         setLoading(true);
         setAudioUrl(null);
         setError(null); // Limpa erros anteriores
 
         try {
-            const url = await generateAudio(text, 'Zephyr'); // Usando a voz 'Zephyr' (Bright)
+            // Usa a voz 'Zephyr' para um tom brilhante e amigável
+            const url = await generateAudio(textToSpeak, 'Zephyr'); 
             if (url) {
                 setAudioUrl(url);
                 const audio = new Audio(url);
@@ -156,7 +170,7 @@ function ListeningPage({ setCurrentView }) {
             }
         } catch (err) {
             console.error("Failed to generate audio:", err);
-            setError('Falha crítica ao conectar com a API de áudio. (403 Forbidden geralmente indica problema na chave).');
+            setError(`Falha crítica ao conectar com a API de áudio: ${err.message}.`);
         } finally {
             setLoading(false);
         }
@@ -175,19 +189,20 @@ function ListeningPage({ setCurrentView }) {
             </div>
 
             <div className="bg-white p-8 rounded-xl shadow-lg border border-yellow-100">
-                <h2 className="text-2xl font-bold mb-4 text-gray-700">Teste de Geração de Áudio (Gemini TTS)</h2>
+                <h2 className="text-2xl font-bold mb-4 text-gray-700">Lição de Teste: {staticLesson.title}</h2>
                 
-                <textarea
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder="Digite a frase para gerar o áudio..."
-                    className="w-full p-3 border border-gray-300 rounded-lg mb-4 resize-y min-h-24 focus:ring-yellow-500 focus:border-yellow-500"
-                />
+                <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Frase em Inglês:</h3>
+                    <p className="text-lg text-gray-600 italic">"{staticLesson.main_text}"</p>
+                    
+                    <h3 className="text-xl font-semibold text-gray-800 mt-4 mb-2">Tradução (Português):</h3>
+                    <p className="text-lg text-gray-600">"{staticLesson.translation_pt}"</p>
+                </div>
 
                 <button
-                    onClick={handleGenerateAndPlay}
-                    disabled={loading || !text}
-                    className={`flex items-center justify-center px-6 py-3 rounded-lg font-bold text-lg transition-all duration-200 ${
+                    onClick={() => handleGenerateAndPlay(staticLesson.main_text)}
+                    disabled={loading}
+                    className={`flex items-center justify-center px-6 py-3 rounded-lg font-bold text-lg w-full transition-all duration-200 ${
                         loading ? 'bg-yellow-300 text-gray-700 cursor-not-allowed' : 'bg-[#F1C40F] text-gray-800 hover:bg-yellow-400 shadow-md'
                     }`}
                 >
@@ -205,20 +220,21 @@ function ListeningPage({ setCurrentView }) {
                 </button>
 
                 {audioUrl && (
-                    <p className="mt-4 text-green-600 font-semibold flex items-center">
+                    <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg font-semibold flex items-center justify-center">
                         <Zap className="w-4 h-4 mr-2" />
-                        Áudio gerado com sucesso!
-                    </p>
+                        Áudio pronto! Reproduzindo automaticamente...
+                    </div>
                 )}
 
                 {error && (
                     <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                        <strong>Erro:</strong> {error}
+                        <strong>Erro de API:</strong> {error}
+                        <p className='text-sm mt-1'>O erro 403 é comum em ambientes restritos. A função foi revisada para lidar com a injeção da chave, mas pode exigir uma nova execução no ambiente.</p>
                     </div>
                 )}
             </div>
             
-            {/* Aqui você adicionaria a grade de níveis (A1, A2, etc.) */}
+            {/* O próximo passo será carregar dinamicamente a lista de lições do PostgreSQL aqui. */}
 
         </div>
     );

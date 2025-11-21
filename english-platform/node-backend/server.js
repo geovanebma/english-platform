@@ -1,58 +1,65 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-// Importar o cliente PostgreSQL
-const { Pool } = require('pg'); 
+import 'dotenv/config';
+import { GoogleGenAI } from '@google/genai';
 
-const app = express();
-const port = 3001; 
+const MAX_RETRIES = 3;
+const DELAY_TIME = 2000;
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const apiKey = process.env.GEMINI_API_KEY;
 
-// ------------------------------------------------------------------
-// CONFIGURAÇÃO DO BANCO DE DADOS
-// ------------------------------------------------------------------
-const pool = new Pool({
-    user: 'postgres',             // Seu USUÁRIO do PostgreSQL
-    host: 'localhost',           // O endereço do servidor
-    database: 'english',         // O NOME DO BANCO DE DADOS (o que você criou no pgAdmin)
-    password: 'triafysql', // Sua SENHA do usuário 'geovane'
-    port: 5432,                  // Porta padrão do PostgreSQL (verifique se você não está usando 5433)
-});
+if (!apiKey) {
+    console.error("ERRO CRÍTICO: A chave GEMINI_API_KEY não foi encontrada. Verifique o arquivo .env.");
+    process.exit(1);
+}
 
-// Teste a conexão assim que o servidor iniciar
-pool.connect((err, client, release) => {
-    if (err) {
-        return console.error('Erro ao adquirir cliente do pool', err.stack);
+const ai = new GoogleGenAI({ apiKey });
+
+async function gerarTexto(prompt) {
+    console.log(`\n🤖 PROCESSANDO PROMPT: "${prompt}"`);
+
+    for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+            const response = await ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                config: {
+                    temperature: 0.7,
+                }
+            });
+
+            const textoGerado = response.text;
+
+            console.log("--- ✅ SUCESSO | Resposta da IA ---");
+            console.log(textoGerado);
+            console.log("----------------------------------\n");
+            return;
+
+        } catch (error) {
+            const errorMessage = error.message;
+            const isOverloadedError = errorMessage.includes("503") || errorMessage.includes("UNAVAILABLE");
+
+            if (isOverloadedError && i < MAX_RETRIES - 1) {
+                const currentWaitTime = DELAY_TIME * (i + 1);
+
+                console.log(`⚠️ Erro temporário (503/Sobrecarga). Tentativa ${i + 1}/${MAX_RETRIES}.`);
+                console.log(`   Reexecutando em ${currentWaitTime / 1000} segundos...`);
+
+                await delay(currentWaitTime);
+
+            } else {
+                console.error(`❌ ERRO FATAL: Falha ao gerar texto após ${i + 1} tentativas.`);
+                console.error("   Detalhes do erro:", errorMessage);
+                break;
+            }
+        }
     }
-    console.log('🎉 Conexão bem-sucedida com o PostgreSQL!');
-    release(); // Libera o cliente
-});
-// ------------------------------------------------------------------
+}
 
+async function main() {
+    console.log("Iniciando o gerador de texto com IA...");
 
-// Middlewares (configurações intermediárias)
-app.use(cors()); 
-app.use(bodyParser.json()); 
+    await gerarTexto("Crie um insert into assim: INSERT INTO listening_lessons VALUES ('A1', title 'Greetings', text 'um texto envolvendo o título gramatical informado no title', translation 'tradução do texto em português', difficulty '1 a 5', type 'DIALOGUE, DICTATION...')");
 
+    console.log("\nExecução de todos os prompts finalizada.");
+}
 
-// Rota de Teste para buscar dados do BD
-app.get('/', async (req, res) => {
-    try {
-        // Exemplo: Consultar a versão do PostgreSQL para provar a conexão
-        const result = await pool.query('SELECT current_database()');
-
-        res.status(200).json({ 
-            message: 'Bem-vindo ao Backend da English Platform!',
-            database_status: 'Conectado!',
-            current_db: result.rows[0].current_database
-        });
-    } catch (err) {
-        console.error("Erro na rota /api/hello:", err);
-        res.status(500).json({ error: 'Erro ao conectar ou consultar o banco de dados.' });
-    }
-});
-
-
-// 4. Iniciar o Servidor
-app.listen(port, () => {
-    console.log(`Servidor rodando em http://localhost:${port}`);
-});
+main();
