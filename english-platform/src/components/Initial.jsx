@@ -17,7 +17,7 @@ import Grammar from '../components/Grammar.jsx';
 import Flashcards from '../components/Flashcards.jsx';
 import Listening from '../components/Listening.jsx';
 import MyVocabulary from '../components/MyVocabulary.jsx';
-import SpeakWithIA from '../components/SpeakWithIA.jsx';
+import SpeakWithAI from '../components/SpeakWithAI.jsx';
 
 // Verifica se a chave de API foi carregada
 // if (!apiKey) {
@@ -142,7 +142,7 @@ function darkenColor(hex, percent) {
 // --- Array Final com shadow ---
 
 const categories = [
-  { id: 1, color: '#b82121', label: 'Speak With IA', icon: MessageSquare, 'shadow': darkenColor('#b82121', 15) }, // -> #871818
+  { id: 1, color: '#b82121', label: 'Speak With AI', icon: MessageSquare, 'shadow': darkenColor('#b82121', 15) }, // -> #871818
   { id: 2, color: '#ed5215', label: 'FlashCards', icon: CreditCard, 'shadow': darkenColor('#ed5215', 15) },      // -> #b84011
   { id: 3, color: '#F1C40F', label: 'Listening', icon: Headphones, 'shadow': darkenColor('#F1C40F', 15) },       // -> #c29c0c
   { id: 4, color: '#5fd100', label: 'Grammar', icon: BookOpen, 'shadow': darkenColor('#5fd100', 15) },           // -> #4b9e00
@@ -192,8 +192,8 @@ export default function InitialPage() {
     return <MyVocabulary setCurrentView={setCurrentView} color={"#096105"} />;
   }
   
-  if (currentView === 'SpeakWithIA') { // Use o 'label' do seu array de categorias
-    return <SpeakWithIA setCurrentView={setCurrentView} color={"#096105"}/>;
+  if (currentView === 'SpeakWithAI') { // Use o 'label' do seu array de categorias
+    return <SpeakWithAI setCurrentView={setCurrentView} color={"#096105"}/>;
   }
 
   // return (
