@@ -4,11 +4,8 @@ import RegisterPage from './components/Register';
 import Initial from './components/Initial';
 
 function App() {
-  // O estado 'view' define qual componente será exibido
-  // const [view, setView] = useState('login'); 
   const [view, setView] = useState('initial'); 
 
-  // Funções de navegação
   const switchToLogin = (e) => {
     if (e) e.preventDefault();
     setView('login');

@@ -1,0 +1,829 @@
+{
+  "languages": {
+    "source_language": "pt-BR",
+    "learning_language": "en-US"
+  },
+  "profile": {
+    "xp": 0,
+    "streak_days": 0,
+    "hearts": 5
+  },
+  "modules": {
+    "flashcards": {
+      "active_deck_id": "A1",
+      "session": {
+        "deck_id": "A1",
+        "card_order": [
+          18,
+          25,
+          9,
+          3,
+          23,
+          1,
+          37,
+          21,
+          41,
+          28,
+          13,
+          40,
+          10,
+          44,
+          26,
+          30,
+          4,
+          2,
+          32,
+          35,
+          29,
+          24,
+          27,
+          39,
+          6,
+          31,
+          12,
+          19,
+          20,
+          43,
+          17,
+          15,
+          8,
+          36,
+          16,
+          42,
+          22,
+          5,
+          7,
+          11,
+          14,
+          33,
+          38,
+          34
+        ],
+        "current_index": 43,
+        "is_flipped": true,
+        "answers": [
+          {
+            "cardId": 18,
+            "rating": "easy"
+          },
+          {
+            "cardId": 25,
+            "rating": "easy"
+          },
+          {
+            "cardId": 9,
+            "rating": "easy"
+          },
+          {
+            "cardId": 3,
+            "rating": "easy"
+          },
+          {
+            "cardId": 23,
+            "rating": "easy"
+          },
+          {
+            "cardId": 1,
+            "rating": "easy"
+          },
+          {
+            "cardId": 37,
+            "rating": "easy"
+          },
+          {
+            "cardId": 21,
+            "rating": "easy"
+          },
+          {
+            "cardId": 41,
+            "rating": "easy"
+          },
+          {
+            "cardId": 28,
+            "rating": "easy"
+          },
+          {
+            "cardId": 13,
+            "rating": "easy"
+          },
+          {
+            "cardId": 40,
+            "rating": "easy"
+          },
+          {
+            "cardId": 10,
+            "rating": "easy"
+          },
+          {
+            "cardId": 44,
+            "rating": "easy"
+          },
+          {
+            "cardId": 26,
+            "rating": "easy"
+          },
+          {
+            "cardId": 30,
+            "rating": "easy"
+          },
+          {
+            "cardId": 4,
+            "rating": "easy"
+          },
+          {
+            "cardId": 2,
+            "rating": "easy"
+          },
+          {
+            "cardId": 32,
+            "rating": "easy"
+          },
+          {
+            "cardId": 35,
+            "rating": "easy"
+          },
+          {
+            "cardId": 29,
+            "rating": "easy"
+          },
+          {
+            "cardId": 24,
+            "rating": "easy"
+          },
+          {
+            "cardId": 27,
+            "rating": "easy"
+          },
+          {
+            "cardId": 39,
+            "rating": "easy"
+          },
+          {
+            "cardId": 6,
+            "rating": "easy"
+          },
+          {
+            "cardId": 31,
+            "rating": "easy"
+          },
+          {
+            "cardId": 12,
+            "rating": "easy"
+          },
+          {
+            "cardId": 19,
+            "rating": "good"
+          },
+          {
+            "cardId": 20,
+            "rating": "easy"
+          },
+          {
+            "cardId": 43,
+            "rating": "easy"
+          },
+          {
+            "cardId": 17,
+            "rating": "easy"
+          },
+          {
+            "cardId": 15,
+            "rating": "easy"
+          },
+          {
+            "cardId": 8,
+            "rating": "easy"
+          },
+          {
+            "cardId": 36,
+            "rating": "easy"
+          },
+          {
+            "cardId": 16,
+            "rating": "easy"
+          },
+          {
+            "cardId": 42,
+            "rating": "easy"
+          },
+          {
+            "cardId": 22,
+            "rating": "easy"
+          },
+          {
+            "cardId": 5,
+            "rating": "easy"
+          },
+          {
+            "cardId": 7,
+            "rating": "easy"
+          },
+          {
+            "cardId": 11,
+            "rating": "easy"
+          },
+          {
+            "cardId": 14,
+            "rating": "easy"
+          },
+          {
+            "cardId": 33,
+            "rating": "easy"
+          },
+          {
+            "cardId": 38,
+            "rating": "easy"
+          }
+        ],
+        "completed": false,
+        "updated_at": "2026-03-07T18:41:50.199Z"
+      },
+      "last_results": null
+    },
+    "speak_ai": {
+      "history": [
+        {
+          "id": "u_1772909887093",
+          "role": "user",
+          "text": "Hi, nice to meet you, I'm Geovane and It is my first time here!"
+        },
+        {
+          "id": "a_1772909887094",
+          "role": "ai",
+          "text": "Great attempt!\nCorrection: \"Hi, nice to meet you, I'm Geovane and It is my first time here!\"\nVocabulary upgrade: \"Hi, pleasant to meet you, I'm Geovane and It is my first time here!\"\nContext tip: Good structure. Next step: vary connectors like although, therefore, and however.",
+          "corrected": "Hi, nice to meet you, I'm Geovane and It is my first time here!",
+          "improved": "Hi, pleasant to meet you, I'm Geovane and It is my first time here!"
+        }
+      ],
+      "last_input": "Hi, nice to meet you, I'm Geovane and It is my first time here!",
+      "total_messages": 2
+    },
+    "reading_comprehension": {
+      "completed_passages": [],
+      "best_scores": {},
+      "attempts": {},
+      "last_passage_id": null,
+      "glossary_saved_words": []
+    },
+    "pronounce": {
+      "vowel_progress": 0,
+      "consonant_progress": 0,
+      "sessions_completed": 0,
+      "last_accuracy": 0,
+      "last_phoneme_score": 0,
+      "last_mouth_tip": ""
+    },
+    "writing": {
+      "completed_exercises": [],
+      "current_level": 1,
+      "best_score": 0,
+      "attempts": 0,
+      "last_feedback": ""
+    },
+    "games": {
+      "high_score": 0,
+      "best_combo": 0,
+      "total_sessions": 0,
+      "total_correct": 0,
+      "last_level": 1
+    },
+    "modern_methodologies": {
+      "history": [
+        {
+          "id": "u_1772910718670",
+          "role": "user",
+          "text": "If I go to New York tomorrow to learn more english?"
+        },
+        {
+          "id": "m_1772910718671",
+          "role": "mentor",
+          "text": "Correction: \"If I go to New York tomorrow to learn more english?\"\nBetter wording: \"If I go to New York tomorrow to learn more english?\"\nContext tip: add concrete details (time, place, purpose) to sound more natural.",
+          "corrected": "If I go to New York tomorrow to learn more english?",
+          "improved": "If I go to New York tomorrow to learn more english?",
+          "metrics": {
+            "grammar": 85,
+            "vocabulary": 78,
+            "context": 88,
+            "clarity": 89
+          }
+        }
+      ],
+      "metrics": {
+        "grammar": 85,
+        "vocabulary": 78,
+        "context": 88,
+        "clarity": 89
+      },
+      "total_reviews": 1,
+      "last_input": "If I go to New York tomorrow to learn more english?"
+    },
+    "listening": {
+      "completed_today": [],
+      "last_reset_date": "2026-03-07",
+      "total_completed": 0,
+      "last_theme_id": null,
+      "accent_mode": "us",
+      "speed_mode": "progressive",
+      "fixed_rate": 1,
+      "progress_by_theme": {}
+    },
+    "immersion": {
+      "completed_themes": [],
+      "last_theme_id": null,
+      "total_completed": 0
+    },
+    "speak_with_natives": {
+      "sessions_history": [
+        {
+          "id": "s_1772911164391",
+          "native_id": "n1",
+          "native_name": "Emma Johnson",
+          "started_at": "2026-03-07T19:19:19.547Z",
+          "duration_minutes": 1,
+          "messages_count": 1
+        },
+        {
+          "id": "s_1772912231123",
+          "native_id": "n2",
+          "native_name": "Liam Carter",
+          "started_at": "2026-03-07T19:36:43.356Z",
+          "duration_minutes": 1,
+          "messages_count": 1
+        },
+        {
+          "id": "s_1772913580314",
+          "native_id": "n1",
+          "native_name": "Emma Johnson",
+          "started_at": "2026-03-07T19:59:34.791Z",
+          "duration_minutes": 1,
+          "messages_count": 1
+        },
+        {
+          "id": "s_1772913678987",
+          "native_id": "n1",
+          "native_name": "Emma Johnson",
+          "started_at": "2026-03-07T20:01:12.499Z",
+          "duration_minutes": 1,
+          "messages_count": 1
+        }
+      ],
+      "total_sessions": 4,
+      "total_minutes": 4,
+      "last_native_id": "n1"
+    },
+    "translation_practice": {
+      "correct_count": 1,
+      "wrong_count": 0,
+      "completed_ids": [
+        "t1"
+      ],
+      "current_level": 2,
+      "total_attempts": 1,
+      "last_item_id": "t1"
+    },
+    "test_english_level": {
+      "last_result": null,
+      "attempts": 0
+    },
+    "community": {
+      "posts": [
+        {
+          "id": "post_1",
+          "author_id": "user_ana",
+          "author_name": "Ana",
+          "content": "Today I learned 12 new words with context sentences. Huge difference.",
+          "created_at": "2026-03-05T12:15:00.000Z",
+          "likes_by": [
+            "user_caio"
+          ],
+          "comments": [
+            {
+              "id": "c_1",
+              "author_id": "user_caio",
+              "author_name": "Caio",
+              "text": "Nice progress. Context helps a lot.",
+              "created_at": "2026-03-05T13:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "id": "post_2",
+          "author_id": "user_lu",
+          "author_name": "Lu",
+          "content": "Anyone wants to practice short speaking drills tonight?",
+          "created_at": "2026-03-05T17:05:00.000Z",
+          "likes_by": [
+            "you",
+            "user_ana"
+          ],
+          "comments": []
+        },
+        {
+          "id": "post_3",
+          "author_id": "user_noah",
+          "author_name": "Noah",
+          "content": "Tip: shadowing for 10 minutes a day improved my listening speed.",
+          "created_at": "2026-03-06T07:30:00.000Z",
+          "likes_by": [],
+          "comments": []
+        }
+      ],
+      "muted_author_ids": [],
+      "reported_post_ids": [],
+      "total_posts": 3,
+      "total_comments": 1,
+      "total_likes": 3,
+      "last_filter": "all",
+      "last_sync": null
+    },
+    "music": {
+      "last_query": "",
+      "manual_url": "",
+      "selected_video_id": "",
+      "selected_title": "",
+      "lyrics_en": "",
+      "search_history": [],
+      "updated_at": null
+    },
+    "profile": {
+      "display_name": "Geovane Barbosa",
+      "bio": "Building English every day.",
+      "daily_goal_minutes": 20,
+      "weekly_goal_xp": 400,
+      "badges_unlocked": [],
+      "recent_notes": [
+        {
+          "id": "note_1772912359240",
+          "text": "Perfil atualizado",
+          "created_at": "2026-03-07T19:39:19.240Z"
+        }
+      ],
+      "updated_at": "2026-03-07T19:39:19.240Z"
+    },
+    "srs_global": {
+      "queue": [
+        {
+          "id": 2,
+          "key": "vocab_1",
+          "module": "Vocabulary",
+          "title": "Revisar palavra aprendida",
+          "prompt": "Tente lembrar a tradução e use em uma frase curta.",
+          "due_date": "2026-03-08",
+          "interval_days": 1,
+          "status": "due"
+        },
+        {
+          "id": 3,
+          "key": "translation_mix",
+          "module": "Translation",
+          "title": "Revisar tradução EN <-> PT",
+          "prompt": "Faça 3 traduções rápidas sem ajuda.",
+          "due_date": "2026-03-08",
+          "interval_days": 1,
+          "status": "due"
+        }
+      ],
+      "completed_today": 0,
+      "total_reviews": 0,
+      "last_generated_date": "2026-03-08",
+      "next_item_id": 4
+    },
+    "adaptive_diagnostics": {
+      "global_score": 51,
+      "global_difficulty": "normal",
+      "recommended_module_key": "reading",
+      "focus_skill": "reading",
+      "skill_scores": [
+        {
+          "skill": "grammar",
+          "score": 65,
+          "error_pressure": 0,
+          "difficulty": "normal",
+          "trend": "flat"
+        },
+        {
+          "skill": "vocabulary",
+          "score": 64,
+          "error_pressure": 0.2,
+          "difficulty": "normal",
+          "trend": "flat"
+        },
+        {
+          "skill": "reading",
+          "score": 20,
+          "error_pressure": 0.5,
+          "difficulty": "basic",
+          "trend": "flat"
+        },
+        {
+          "skill": "listening",
+          "score": 20,
+          "error_pressure": 0.55,
+          "difficulty": "basic",
+          "trend": "flat"
+        },
+        {
+          "skill": "speaking",
+          "score": 88,
+          "error_pressure": 0.45,
+          "difficulty": "advanced",
+          "trend": "flat"
+        },
+        {
+          "skill": "writing",
+          "score": 49,
+          "error_pressure": 0.6,
+          "difficulty": "normal",
+          "trend": "flat"
+        }
+      ],
+      "last_evaluated": "2026-03-08T22:43:40.580Z"
+    },
+    "weekly_study_plan": {
+      "goal": "conversacao",
+      "week_start": "2026-03-02",
+      "generated_at": "2026-03-07T18:52:09.505Z",
+      "days": [
+        {
+          "day_index": 0,
+          "day_name": "Seg",
+          "module_key": "speak_ai",
+          "task": "Conversação guiada com correção",
+          "minutes": 26,
+          "status": "pending"
+        },
+        {
+          "day_index": 1,
+          "day_name": "Ter",
+          "module_key": "speak_ai",
+          "task": "Perguntas e respostas rápidas",
+          "minutes": 22,
+          "status": "pending"
+        },
+        {
+          "day_index": 2,
+          "day_name": "Qua",
+          "module_key": "pronounce",
+          "task": "Treino de sons críticos",
+          "minutes": 20,
+          "status": "pending"
+        },
+        {
+          "day_index": 3,
+          "day_name": "Qui",
+          "module_key": "listening",
+          "task": "Escuta ativa + repetição",
+          "minutes": 24,
+          "status": "pending"
+        },
+        {
+          "day_index": 4,
+          "day_name": "Sex",
+          "module_key": "speak_with_natives",
+          "task": "Sessão de fala com nativos",
+          "minutes": 28,
+          "status": "pending"
+        },
+        {
+          "day_index": 5,
+          "day_name": "Sab",
+          "module_key": "immersion",
+          "task": "Diálogo contextual e áudio",
+          "minutes": 22,
+          "status": "pending"
+        },
+        {
+          "day_index": 6,
+          "day_name": "Dom",
+          "module_key": "flashcards",
+          "task": "Frases úteis para diálogo",
+          "minutes": 16,
+          "status": "pending"
+        }
+      ]
+    },
+    "error_notebook": {
+      "patterns": [],
+      "total_logged": 0,
+      "last_updated": "2026-03-08T22:43:40.581Z",
+      "manual_notes": []
+    },
+    "long_term_retention": {
+      "records": [
+        {
+          "id": 1,
+          "key": "starter_review",
+          "title": "Primeira revisão global",
+          "module": "Starter",
+          "prompt": "Comece pelo módulo Grammar e finalize 1 lição.",
+          "scheduled_days": 7,
+          "scheduled_for": "2026-03-07",
+          "status": "due",
+          "attempts": 0,
+          "source_date": "2026-03-07",
+          "stage": "7d",
+          "last_score": null
+        },
+        {
+          "id": 2,
+          "key": "vocab_1",
+          "title": "Revisar palavra aprendida",
+          "module": "Vocabulary",
+          "prompt": "Tente lembrar a tradução e use em uma frase curta.",
+          "scheduled_days": 7,
+          "scheduled_for": "2026-03-08",
+          "status": "due",
+          "attempts": 0,
+          "source_date": "2026-03-08",
+          "stage": "7d",
+          "last_score": null
+        },
+        {
+          "id": 3,
+          "key": "translation_mix",
+          "title": "Revisar tradução EN <-> PT",
+          "module": "Translation",
+          "prompt": "Faça 3 traduções rápidas sem ajuda.",
+          "scheduled_days": 7,
+          "scheduled_for": "2026-03-08",
+          "status": "due",
+          "attempts": 0,
+          "source_date": "2026-03-08",
+          "stage": "7d",
+          "last_score": null
+        }
+      ],
+      "next_item_id": 4,
+      "total_tests": 0,
+      "passed_tests": 0,
+      "last_generated_date": "2026-03-08",
+      "last_tested_at": null
+    },
+    "pedagogical_onboarding": {
+      "completed": false,
+      "completed_at": null,
+      "goal": "conversacao",
+      "learner_profile": "balanced",
+      "daily_minutes": 20,
+      "quiz_answers": {},
+      "quiz_score": 0,
+      "estimated_level": "A1",
+      "personalized_track": [
+        "grammar",
+        "flashcards",
+        "listening",
+        "writing"
+      ],
+      "recommended_module_key": "grammar"
+    },
+    "pedagogical_reports": {
+      "history": [
+        {
+          "id": "report_1772984685622",
+          "generated_at": "2026-03-08T15:44:45.622Z",
+          "global_score": 51,
+          "level_estimate": "A1",
+          "objective": "conversacao",
+          "retention_rate": 0,
+          "consistency_rate": 0,
+          "xp": 0,
+          "streak_days": 0,
+          "strongest_skill": "speaking",
+          "weakest_skill": "reading",
+          "score_evolution": 51,
+          "module_health": [
+            {
+              "key": "grammar",
+              "label": "Grammar",
+              "value": 0
+            },
+            {
+              "key": "vocabulary",
+              "label": "Vocabulary",
+              "value": 3
+            },
+            {
+              "key": "listening",
+              "label": "Listening",
+              "value": 0
+            },
+            {
+              "key": "writing",
+              "label": "Writing",
+              "value": 0
+            },
+            {
+              "key": "speaking",
+              "label": "Speaking",
+              "value": 4
+            }
+          ],
+          "recommendations": [
+            "Priorizar Reading nas próximas 72h.",
+            "Aumentar revisões espaçadas de 7 e 30 dias para consolidar memória.",
+            "Reduzir meta diária e aumentar consistência semanal."
+          ]
+        }
+      ],
+      "last_generated_at": "2026-03-08T15:44:45.622Z",
+      "last_report": {
+        "id": "report_1772984685622",
+        "generated_at": "2026-03-08T15:44:45.622Z",
+        "global_score": 51,
+        "level_estimate": "A1",
+        "objective": "conversacao",
+        "retention_rate": 0,
+        "consistency_rate": 0,
+        "xp": 0,
+        "streak_days": 0,
+        "strongest_skill": "speaking",
+        "weakest_skill": "reading",
+        "score_evolution": 51,
+        "module_health": [
+          {
+            "key": "grammar",
+            "label": "Grammar",
+            "value": 0
+          },
+          {
+            "key": "vocabulary",
+            "label": "Vocabulary",
+            "value": 3
+          },
+          {
+            "key": "listening",
+            "label": "Listening",
+            "value": 0
+          },
+          {
+            "key": "writing",
+            "label": "Writing",
+            "value": 0
+          },
+          {
+            "key": "speaking",
+            "label": "Speaking",
+            "value": 4
+          }
+        ],
+        "recommendations": [
+          "Priorizar Reading nas próximas 72h.",
+          "Aumentar revisões espaçadas de 7 e 30 dias para consolidar memória.",
+          "Reduzir meta diária e aumentar consistência semanal."
+        ]
+      }
+    },
+    "my_vocabulary": {
+      "saved_words": 5,
+      "learned_words": 5,
+      "learned_word_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "learned_word_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "learned_words_csv": "The,Of,And,To,A",
+      "last_page": 1,
+      "last_sort": "rank",
+      "last_filter": "both",
+      "last_search": "",
+      "saved_words_custom": []
+    },
+    "grammar": {
+      "completed_units": [],
+      "last_unit": null
+    }
+  },
+  "my_vocabulary": {
+    "saved_words": 5,
+    "learned_words": 5,
+    "learned_word_ids": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "learned_word_ranks": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "learned_words_csv": "The,Of,And,To,A",
+    "last_page": 1,
+    "last_sort": "rank",
+    "last_filter": "both",
+    "last_search": "",
+    "saved_words_custom": []
+  }
+}

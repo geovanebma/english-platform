@@ -1,8 +1,8 @@
-'A1'
+﻿'A1'
 'Good morning, good afternoon, good evening'
 'Asking and Saying the Name'
 'Nice to meet you'
-'How are you?”'
+'How are you?â€'
 'Personal Pronouns'
 'Verb To Be Affirmative'
 'Verb To Be Negative'
@@ -13,7 +13,7 @@
 'Goodbye in English'
 "But I don't even know who you are"
 'Where is it? Where is it?'
-' What’s his name?'
+' Whatâ€™s his name?'
 'Numbers 11-100'
 'How to tell AGE'
 'Classroom Objects'
@@ -86,7 +86,7 @@
 'MUST Proba + MUST ? + Cognates'
 'Make x Do + SOM ir + One Hundred Thousand'
 'Countless + MANY/MUCH + A LITTLE/A FEW'
-'Comparative + 2 Syllables Y +SOUND ÃR'
+'Comparative + 2 Syllables Y +SOUND ER'
 'Superlative + Superlative Y + GOOD/BAD'
 'Food/Beverage + Verd./Fruit + Dessert/Snack'
 'Packaging + Sitting + Infinitive Only'
@@ -124,7 +124,7 @@
 'Prep. at the end QUESTIONS + Pron. RELATIVE + RELATIVE pron. II'
 'Somewhere_Any_No + Vocab. Airport + Most Common SOUND'
 'HOUSEWORK + DO + MAKE'
-'Very_Too + Sound æ + Sound and'
+'Very_Too + Sound ae + Sound and'
 'Too, also, either, neither + Speak, talk... + Speak, talk... II'
 'ABLE + each other + godparents'
 'May Poss. + May Per, + Might'
@@ -283,3 +283,4 @@
 "Preference WOULD + It's time + City Adj."
 'Prep. TIME + Inf. Contractions + About to'
 'Concerning + All Verb Tenses'
+

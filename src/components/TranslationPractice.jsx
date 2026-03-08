@@ -1,163 +1,416 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { Check, X, ArrowRight, RefreshCw, SkipForward } from "lucide-react";
+﻿import React, { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
 
-export default function TranslationPractice() {
-  // ---------- Dados ----------
-  const defaultPhrases = useMemo(
-    () => [
-      { id: 1, english: "Good morning", portuguese: "Bom dia" },
-      { id: 2, english: "How are you?", portuguese: "Como você está?" },
-      { id: 3, english: "I love programming", portuguese: "Eu adoro programar" },
-    ],
-    []
-  );
+const TRANSLATION_ITEMS = [
+  {
+    id: "t1",
+    level: 1,
+    from: "en",
+    source: "Good morning",
+    target: "Bom dia",
+    accepted: ["Bom dia!"],
+  },
+  {
+    id: "t2",
+    level: 1,
+    from: "pt",
+    source: "Boa noite",
+    target: "Good evening",
+    accepted: ["Good night"],
+    contextHint: "Tanto \"good evening\" quanto \"good night\" podem estar corretos dependendo do contexto.",
+  },
+  {
+    id: "t3",
+    level: 1,
+    from: "en",
+    source: "I am ready",
+    target: "Eu estou pronto",
+    accepted: ["Estou pronto", "Eu tô pronto"],
+  },
+  {
+    id: "t4",
+    level: 2,
+    from: "pt",
+    source: "Eu preciso de ajuda",
+    target: "I need help",
+    accepted: ["I need some help", "I need your help"],
+  },
+  {
+    id: "t5",
+    level: 2,
+    from: "en",
+    source: "She studies every day",
+    target: "Ela estuda todos os dias",
+    accepted: ["Ela estuda diariamente"],
+  },
+  {
+    id: "t6",
+    level: 2,
+    from: "pt",
+    source: "Nós chegamos cedo",
+    target: "We arrived early",
+    accepted: ["We got here early", "We came early"],
+  },
+  {
+    id: "t7",
+    level: 3,
+    from: "en",
+    source: "Could you explain this sentence?",
+    target: "Você poderia explicar esta frase?",
+    accepted: ["Você pode explicar esta frase?", "Poderia explicar essa frase?"],
+  },
+  {
+    id: "t8",
+    level: 3,
+    from: "pt",
+    source: "Eu vou confirmar os detalhes depois",
+    target: "I will confirm the details later",
+    accepted: ["I'll confirm the details later"],
+  },
+  {
+    id: "t9",
+    level: 3,
+    from: "en",
+    source: "Their presentation was very clear",
+    target: "A apresentação deles foi muito clara",
+    accepted: ["A apresentação deles estava muito clara"],
+  },
+  {
+    id: "t10",
+    level: 4,
+    from: "pt",
+    source: "Apesar do atraso, terminamos o projeto",
+    target: "Despite the delay, we finished the project",
+    accepted: ["In spite of the delay, we finished the project"],
+  },
+  {
+    id: "t11",
+    level: 4,
+    from: "en",
+    source: "He suggested a more efficient approach",
+    target: "Ele sugeriu uma abordagem mais eficiente",
+    accepted: ["Ele sugeriu uma forma mais eficiente de abordar"],
+  },
+  {
+    id: "t12",
+    level: 4,
+    from: "pt",
+    source: "A reunião foi adiada para amanhã",
+    target: "The meeting was postponed until tomorrow",
+    accepted: ["The meeting was postponed to tomorrow", "The meeting got postponed until tomorrow"],
+  },
+];
 
-  const [phrases, setPhrases] = useState(() => {
-    // tenta carregar do localStorage; fallback para mock
-    const saved = localStorage.getItem("tp_phrases");
-    return saved ? JSON.parse(saved) : defaultPhrases;
+function normalizeBase(text) {
+  return (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/["'`´]/g, "")
+    .replace(/[^\w\s?]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function expandEnglishContractions(text) {
+  return text
+    .replace(/\bi\s*m\b/g, "i am")
+    .replace(/\bwe\s*re\b/g, "we are")
+    .replace(/\byou\s*re\b/g, "you are")
+    .replace(/\bthey\s*re\b/g, "they are")
+    .replace(/\bhe\s*s\b/g, "he is")
+    .replace(/\bshe\s*s\b/g, "she is")
+    .replace(/\bit\s*s\b/g, "it is")
+    .replace(/\bthat\s*s\b/g, "that is")
+    .replace(/\bthere\s*s\b/g, "there is")
+    .replace(/\bwhat\s*s\b/g, "what is")
+    .replace(/\bwho\s*s\b/g, "who is")
+    .replace(/\bdo\s*nt\b/g, "do not")
+    .replace(/\bdoes\s*nt\b/g, "does not")
+    .replace(/\bdid\s*nt\b/g, "did not")
+    .replace(/\bcant\b/g, "can not")
+    .replace(/\bwon\s*t\b/g, "will not")
+    .replace(/\bshould\s*nt\b/g, "should not")
+    .replace(/\bcould\s*nt\b/g, "could not")
+    .replace(/\bwould\s*nt\b/g, "would not")
+    .replace(/\bhas\s*nt\b/g, "has not")
+    .replace(/\bhave\s*nt\b/g, "have not")
+    .replace(/\bhad\s*nt\b/g, "had not")
+    .replace(/\bll\b/g, " will")
+    .replace(/\bve\b/g, " have");
+}
+
+function canonicalize(text, lang) {
+  let value = normalizeBase(text);
+  if (lang === "en") value = expandEnglishContractions(value);
+
+  value = value
+    .replace(/\b(the|a|an)\b/g, " ")
+    .replace(/\b(o|a|os|as|um|uma|uns|umas)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return value;
+}
+
+function tokenSet(text) {
+  return new Set(text.split(" ").filter(Boolean));
+}
+
+function jaccard(a, b) {
+  const sa = tokenSet(a);
+  const sb = tokenSet(b);
+  if (!sa.size && !sb.size) return 1;
+  let inter = 0;
+  sa.forEach((t) => {
+    if (sb.has(t)) inter += 1;
   });
+  const union = new Set([...sa, ...sb]).size;
+  return union === 0 ? 0 : inter / union;
+}
 
+function evaluateTranslation(item, input) {
+  const answerRaw = (input || "").trim();
+  const answerNorm = canonicalize(answerRaw, item.from === "pt" ? "en" : "pt");
+
+  const variants = [item.target, ...(item.accepted || [])];
+  const normalizedVariants = variants.map((v) => canonicalize(v, item.from === "pt" ? "en" : "pt"));
+
+  const exactMatch = normalizedVariants.includes(answerNorm);
+  if (exactMatch) {
+    return {
+      correct: true,
+      message: item.contextHint || "Correto! Boa tradução.",
+      acceptedVariants: variants,
+    };
+  }
+
+  const bestSimilarity = normalizedVariants.reduce((best, candidate) => {
+    const sim = jaccard(answerNorm, candidate);
+    return sim > best ? sim : best;
+  }, 0);
+
+  if (bestSimilarity >= 0.82) {
+    return {
+      correct: true,
+      message: "Muito perto e semanticamente equivalente. Considerado correto.",
+      acceptedVariants: variants,
+    };
+  }
+
+  return {
+    correct: false,
+    message: `Resposta esperada: \"${item.target}\"`,
+    acceptedVariants: variants,
+  };
+}
+
+function ensureTranslation(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.translation_practice) {
+    data.modules.translation_practice = {
+      correct_count: 0,
+      wrong_count: 0,
+      completed_ids: [],
+      current_level: 1,
+      total_attempts: 0,
+      last_item_id: null,
+    };
+  }
+  return data;
+}
+
+async function readProgress() {
+  const res = await fetch("/api/progress", { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao ler progresso");
+  const parsed = await res.json();
+  return ensureTranslation(parsed);
+}
+
+async function writeProgress(nextProgress) {
+  const res = await fetch("/api/progress", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(nextProgress),
+  });
+  if (!res.ok) throw new Error("Falha ao salvar progresso");
+  const parsed = await res.json();
+  return ensureTranslation(parsed);
+}
+
+export default function TranslationPractice({ setCurrentView, color = "#573a22" }) {
   const [index, setIndex] = useState(0);
-  const [input, setInput] = useState("");
-  const [result, setResult] = useState(null); // null | true | false
-  const [score, setScore] = useState(() => {
-    const saved = localStorage.getItem("tp_score");
-    return saved ? JSON.parse(saved) : 0;
-  });
-
-  // ---------- Efeitos ----------
-  useEffect(() => {
-    // limpa input e resultado ao mudar a frase
-    setInput("");
-    setResult(null);
-  }, [index]);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState(null);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [wrongCount, setWrongCount] = useState(0);
+  const [completedIds, setCompletedIds] = useState(new Set());
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // persiste progresso
-    localStorage.setItem("tp_score", JSON.stringify(score));
-    localStorage.setItem("tp_phrases", JSON.stringify(phrases));
-  }, [score, phrases]);
+    let mounted = true;
+    (async () => {
+      try {
+        const progress = await readProgress();
+        if (!mounted) return;
+        const block = progress.modules.translation_practice;
+        setCorrectCount(Number(block.correct_count || 0));
+        setWrongCount(Number(block.wrong_count || 0));
+        const done = new Set(block.completed_ids || []);
+        setCompletedIds(done);
+        setCurrentLevel(Number(block.current_level || 1));
 
-  // ---------- Funções ----------
-  const normalize = (str) =>
-    str
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, ""); // remove acentos
+        const firstPending = TRANSLATION_ITEMS.findIndex((i) => !done.has(i.id));
+        setIndex(firstPending >= 0 ? firstPending : 0);
+      } catch {
+        if (!mounted) return;
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-  const handleCheck = useCallback(() => {
-    const correct = normalize(phrases[index].portuguese);
-    const userAns = normalize(input);
-    const isCorrect = correct === userAns;
-    setResult(isCorrect);
-    if (isCorrect) setScore((s) => s + 1);
-  }, [phrases, index, input]);
+  const item = TRANSLATION_ITEMS[index];
+  const total = TRANSLATION_ITEMS.length;
+  const progressPercent = Math.round((completedIds.size / total) * 100);
 
-  const handleNext = useCallback(() => {
-    setIndex((i) => (i + 1) % phrases.length);
-  }, [phrases.length]);
+  const directionLabel = useMemo(() => (item.from === "en" ? "EN -> PT" : "PT -> EN"), [item]);
 
-  const handleSkip = useCallback(() => {
-    setResult(false); // marca como errada e avança
-    handleNext();
-  }, [handleNext]);
+  const verify = async () => {
+    const result = evaluateTranslation(item, answer);
 
-  const handleReset = useCallback(() => {
-    setIndex(0);
-    setScore(0);
-    setPhrases(defaultPhrases);
-  }, [defaultPhrases]);
+    const nextCompleted = new Set(completedIds);
+    nextCompleted.add(item.id);
+    setCompletedIds(nextCompleted);
 
-  // ---------- Render ----------
-  const progress = ((score / phrases.length) * 100).toFixed(0);
+    const nextCorrect = correctCount + (result.correct ? 1 : 0);
+    const nextWrong = wrongCount + (result.correct ? 0 : 1);
+    setCorrectCount(nextCorrect);
+    setWrongCount(nextWrong);
+
+    const variantsLabel = result.acceptedVariants.length > 1
+      ? ` Variações aceitas: ${result.acceptedVariants.map((v) => `\"${v}\"`).join(" | ")}`
+      : "";
+
+    setFeedback({
+      correct: result.correct,
+      text: `${result.message}${variantsLabel}`,
+    });
+
+    const unlockedLevel = TRANSLATION_ITEMS.reduce((acc, ex) => {
+      if (nextCompleted.has(ex.id)) return Math.max(acc, ex.level);
+      return acc;
+    }, 1);
+    const nextLevel = Math.min(4, unlockedLevel + 1);
+    setCurrentLevel(nextLevel);
+
+    try {
+      const progress = await readProgress();
+      progress.modules.translation_practice = {
+        correct_count: nextCorrect,
+        wrong_count: nextWrong,
+        completed_ids: [...nextCompleted],
+        current_level: nextLevel,
+        total_attempts: Number(progress.modules.translation_practice.total_attempts || 0) + 1,
+        last_item_id: item.id,
+      };
+      await writeProgress(progress);
+    } catch {
+      // no-op
+    }
+  };
+
+  const nextItem = () => {
+    setIndex((i) => (i + 1) % total);
+    setAnswer("");
+    setFeedback(null);
+  };
+
+  const prevItem = () => {
+    setIndex((i) => (i - 1 + total) % total);
+    setAnswer("");
+    setFeedback(null);
+  };
 
   return (
-    <section className="max-w-xl mx-auto p-6 bg-gray-900 text-gray-100 rounded-lg shadow-lg dark:bg-gray-800">
-      <header className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Translation Practice</h2>
-        <button
-          onClick={handleReset}
-          className="flex items-center gap-1 text-gray-400 hover:text-red-400"
-          aria-label="Resetar prática"
-        >
-          <RefreshCw size={16} />
-          Reset
+    <section className="translation-shell" style={{ "--translation-theme": color }}>
+      <header className="translation-head">
+        <button type="button" className="duo-back-btn" onClick={() => setCurrentView("initial")}>
+          <ArrowLeft size={18} />
+          Voltar
         </button>
+        <div>
+          <div className="translation-kicker">TRANSLATION PRACTICE</div>
+          <h1>Translation</h1>
+        </div>
       </header>
 
-      {/* barra de progresso */}
-      <div className="w-full bg-gray-700 rounded h-2 mb-4 overflow-hidden">
-        <div
-          className="bg-green-500 h-full transition-width duration-300"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <div className="flex justify-between text-sm mb-2">
-        <span>
-          Score: {score}/{phrases.length}
-        </span>
-        <span>{progress}% concluído</span>
-      </div>
+      {loading ? (
+        <div className="translation-empty">Carregando...</div>
+      ) : (
+        <article className="translation-card">
+          <div className="translation-top-stats">
+            <span>Nível atual: {currentLevel}</span>
+            <span>Acertos: {correctCount}</span>
+            <span>Erros: {wrongCount}</span>
+          </div>
 
-      <p className="text-xl font-medium mb-4">{phrases[index].english}</p>
+          <div className="translation-progress">
+            <div className="translation-progress-track">
+              <div className="translation-progress-fill" style={{ width: `${progressPercent}%` }} />
+            </div>
+            <strong>{completedIds.size}/{total}</strong>
+          </div>
 
-      <input
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Digite a tradução..."
-        className="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:border-blue-500"
-        disabled={result !== null}
-        onKeyDown={(e) => e.key === "Enter" && handleCheck()}
-        aria-label="Campo de resposta"
-      />
+          <div className="translation-question">
+            <span className="translation-direction">{directionLabel}</span>
+            <p>{item.source}</p>
+          </div>
 
-      <div className="flex items-center mt-4 gap-4">
-        {result === null ? (
-          <>
-            <button
-              onClick={handleCheck}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white disabled:opacity-50"
-              disabled={!input.trim()}
-              aria-label="Verificar resposta"
-            >
-              Check
-              <Check size={18} />
+          <input
+            type="text"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !feedback) verify();
+            }}
+            placeholder="Digite a tradução..."
+            disabled={!!feedback}
+          />
+
+          {feedback && (
+            <div className={`translation-feedback ${feedback.correct ? "is-ok" : "is-bad"}`}>
+              {feedback.correct ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+              <span>{feedback.text}</span>
+            </div>
+          )}
+
+          <div className="translation-actions">
+            <button type="button" className="translation-secondary-btn" onClick={prevItem}>
+              Anterior
             </button>
-            <button
-              onClick={handleSkip}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-200"
-              aria-label="Pular frase"
-            >
-              Skip
-              <SkipForward size={18} />
-            </button>
-          </>
-        ) : (
-          <>
-            <span
-              className={`flex items-center gap-2 ${
-                result ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {result ? <Check size={18} /> : <X size={18} />}
-              {result
-                ? "Correct!"
-                : `Wrong. Correct: "${phrases[index].portuguese}"`}
-            </span>
-            <button
-              onClick={handleNext}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-gray-200"
-              aria-label="Próxima frase"
-            >
-              Next
-              <ArrowRight size={18} />
-            </button>
-          </>
-        )}
-      </div>
+            {!feedback ? (
+              <button
+                type="button"
+                className="translation-primary-btn"
+                onClick={verify}
+                disabled={!answer.trim()}
+              >
+                Verificar
+              </button>
+            ) : (
+              <button type="button" className="translation-primary-btn" onClick={nextItem}>
+                Próxima
+              </button>
+            )}
+          </div>
+        </article>
+      )}
     </section>
   );
 }

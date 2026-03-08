@@ -1,17 +1,5 @@
-import React, { useState } from 'react';
-import ReactDOM from 'react-dom/client'
-import App from '../App.jsx'
-import '../initial.css'
-
-import { motion } from 'framer-motion';
-
-import Grammar from '../components/Grammar.jsx';
-import Flashcards from '../components/Flashcards.jsx';
-import Listening from '../components/Listening.jsx';
-import MyVocabulary from '../components/MyVocabulary.jsx';
-import SpeakWithAI from '../components/SpeakWithAI.jsx';
-
-
+﻿import React, { useEffect, useMemo, useState } from "react";
+import "../initial.css";
 import {
   BookOpen,
   CreditCard,
@@ -29,166 +17,2262 @@ import {
   Users,
   Languages,
   ClipboardCheck,
-  User
-} from 'lucide-react';
+  User,
+  UserRound,
+  Music,
+  Shield,
+  Flame,
+  Gem,
+  Heart,
+  ChevronRight,
+  UserPlus,
+  LogIn,
+  RotateCcw,
+  CheckCircle2,
+  BrainCircuit,
+  Gauge,
+  TrendingUp,
+  CalendarDays,
+  RefreshCw,
+  NotebookPen,
+  TriangleAlert,
+  Plus,
+  BarChart3,
+  FileDown,
+  Trophy,
+} from "lucide-react";
+import Grammar from "./Grammar";
+import Flashcards from "./Flashcards";
+import MyVocabulary from "./MyVocabulary";
+import Dictionary from "./Dictionary";
+import Courses from "./Courses";
+import SpeakWithAI from "./SpeakWithAI";
+import ReadingComprehension from "./ReadingComprehension";
+import Pronounce from "./Pronounce";
+import Writing from "./Writing";
+import Games from "./Games";
+import Modernmethodologies from "./Modernmethodologies";
+import Listening from "./Listening";
+import Immersion from "./Immersion";
+import SpeakWithnatives from "./SpeakWithnatives";
+import TranslationPractice from "./TranslationPractice";
+import TestYourEnglishLevel from "./TestYourEnglishLevel";
+import Community from "./Community";
+import MusicModule from "./Music";
+import ProfileModule from "./Profile";
 
-/**
- * Função utilitária para converter uma cor Hexadecimal para HSL.
- * @param {string} H - Cor Hexadecimal (ex: #b82121)
- * @returns {object} {h, s, l}
- */
-function hexToHsl(H) {
-  let r = 0, g = 0, b = 0;
-  if (H.length === 4) {
-    r = parseInt(H[1] + H[1], 16);
-    g = parseInt(H[2] + H[2], 16);
-    b = parseInt(H[3] + H[3], 16);
-  } else if (H.length === 7) {
-    r = parseInt(H[1] + H[2], 16);
-    g = parseInt(H[3] + H[4], 16);
-    b = parseInt(H[5] + H[6], 16);
-  }
-  
-  r /= 255;
-  g /= 255;
-  b /= 255;
-
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h, s, l = (max + min) / 2;
-
-  if (max === min) {
-    h = s = 0;
-  } else {
-    const d = max - min;
-
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
-    }
-    h /= 6;
-  }
+function hexToRgb(hex) {
+  const cleaned = (hex || "#58cc02").replace("#", "");
+  const normalized =
+    cleaned.length === 3
+      ? cleaned
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : cleaned;
+  const int = Number.parseInt(normalized, 16);
   return {
-    h: Math.round(h * 360),
+    r: (int >> 16) & 255,
+    g: (int >> 8) & 255,
+    b: int & 255,
+  };
+}
+
+function darken(hex, amount = 20) {
+  const { r, g, b } = hexToRgb(hex);
+  const next = [r, g, b].map((v) => Math.max(0, v - amount));
+  return `rgb(${next[0]}, ${next[1]}, ${next[2]})`;
+}
+
+function alpha(hex, a) {
+  const { r, g, b } = hexToRgb(hex);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+function rgbToHsl({ r, g, b }) {
+  const nr = r / 255;
+  const ng = g / 255;
+  const nb = b / 255;
+  const max = Math.max(nr, ng, nb);
+  const min = Math.min(nr, ng, nb);
+  const diff = max - min;
+
+  let h = 0;
+  if (diff !== 0) {
+    if (max === nr) h = ((ng - nb) / diff) % 6;
+    else if (max === ng) h = (nb - nr) / diff + 2;
+    else h = (nr - ng) / diff + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+  }
+
+  const l = (max + min) / 2;
+  const s = diff === 0 ? 0 : diff / (1 - Math.abs(2 * l - 1));
+
+  return {
+    h,
     s: Math.round(s * 100),
-    l: Math.round(l * 100)
+    l: Math.round(l * 100),
   };
 }
 
-/**
- * Função utilitária para converter HSL de volta para Hexadecimal.
- * @param {number} h - Hue (0-360)
- * @param {number} s - Saturation (0-100)
- * @param {number} l - Lightness (0-100)
- * @returns {string} Cor Hexadecimal
- */
-function hslToHex(h, s, l) {
-  l /= 100;
-  const a = s * Math.min(l, 1 - l) / 100;
-  const f = n => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
+function getPersonByColor(hex) {
+  const { h, s, l } = rgbToHsl(hexToRgb(hex));
+
+  if (s <= 14 || l <= 18) return "lin";
+  if (h >= 70 && h < 165) return "duo";
+  if (h >= 45 && h < 70) return "bea";
+  if (h >= 345 || h < 15) return "eddy";
+  if (h >= 15 && h < 45) return l <= 46 ? "falstaff" : "lucy";
+  if (h >= 165 && h < 255) return "junior";
+  if (h >= 255 && h < 300) return "lily";
+  if (h >= 300 && h < 345) return l >= 68 ? "zari" : "vikram";
+
+  return "oscar";
 }
 
-/**
- * Escurece uma cor Hexadecimal em uma porcentagem de luminosidade.
- * @param {string} hex - Cor Hexadecimal.
- * @param {number} percent - Porcentagem para reduzir a Luminosidade (ex: 15).
- * @returns {string} Novo Hexadecimal escurecido.
- */
-
-function darkenColor(hex, percent) {
-  const hsl = hexToHsl(hex);
-  const newL = Math.max(0, hsl.l - percent);
-  return hslToHex(hsl.h, hsl.s, newL);
-}
-
-const categories = [
-  { id: 1, color: '#b82121', label: 'Speak With AI', icon: MessageSquare, 'shadow': darkenColor('#b82121', 15) }, // -> #871818
-  { id: 2, color: '#ed5215', label: 'FlashCards', icon: CreditCard, 'shadow': darkenColor('#ed5215', 15) },      // -> #b84011
-  { id: 3, color: '#F1C40F', label: 'Listening', icon: Headphones, 'shadow': darkenColor('#F1C40F', 15) },       // -> #c29c0c
-  { id: 4, color: '#5fd100', label: 'Grammar', icon: BookOpen, 'shadow': darkenColor('#5fd100', 15) },           // -> #4b9e00
-  { id: 5, color: '#2eab15', label: 'Dictionary', icon: BookMarked, 'shadow': darkenColor('#2eab15', 15) },       // -> #238210
-  { id: 6, color: '#096105', label: 'My vocabulary', icon: Library, 'shadow': darkenColor('#096105', 15) },       // -> #064904
-  { id: 7, color: '#009982', label: 'Courses', icon: GraduationCap, 'shadow': darkenColor('#009982', 15) },       // -> #007666
-  { id: 8, color: '#0e94b5', label: 'Reading Comprehension', icon: FileText, 'shadow': darkenColor('#0e94b5', 15) }, // -> #0b738c
-  { id: 9, color: '#085163', label: 'Pronnounce', icon: Volume2, 'shadow': darkenColor('#085163', 15) },         // -> #063d4a
-  { id: 10, color: '#122987', label: 'Writing', icon: Pencil, 'shadow': darkenColor('#122987', 15) },           // -> #0e1e69
-  { id: 11, color: '#5902b0', label: 'Games', icon: Gamepad2, 'shadow': darkenColor('#5902b0', 15) },           // -> #440188
-  { id: 12, color: '#a61b57', label: 'Modern methodologies', icon: Lightbulb, 'shadow': darkenColor('#a61b57', 15) }, // -> #7f1442
-  { id: 13, color: '#b00245', label: 'Immersion', icon: Waves, 'shadow': darkenColor('#b00245', 15) },           // -> #880135
-  { id: 14, color: '#ad9a6f', label: 'Speak With natives', icon: Users, 'shadow': darkenColor('#ad9a6f', 15) },   // -> #877651
-  { id: 15, color: '#573a22', label: 'Translation Practice', icon: Languages, 'shadow': darkenColor('#573a22', 15) }, // -> #422c19
-  { id: 16, color: '#606160', label: 'Test Your English Level', icon: ClipboardCheck, 'shadow': darkenColor('#606160', 15) }, // -> #4a4a4a
-  { id: 17, color: '#333333', label: 'Community', icon: User, 'shadow': darkenColor('#333333', 15) },           // -> #282828
+const MODULES = [
+  { key: "grammar", label: "Grammar", color: "#58cc02", icon: BookOpen },
+  { key: "flashcards", label: "Flashcards", color: "#FEB023", icon: CreditCard },
+  { key: "my_vocabulary", label: "My Vocabulary", color: "#FF4A49", icon: Library },
+  { key: "dictionary", label: "Dictionary", color: "#A46845", icon: BookMarked },
+  { key: "speak_ai", label: "Speak With AI", color: "#14E5FF", icon: MessageSquare },
+  { key: "courses", label: "Courses", color: "#A76EFF", icon: GraduationCap },
+  { key: "reading", label: "Reading", color: "#C76B03", icon: FileText },
+  { key: "pronounce", label: "Pronounce", color: "#FD9700", icon: Volume2 },
+  { key: "writing", label: "Writing", color: "#27E69B", icon: Pencil },
+  { key: "games", label: "Games", color: "#0084C6", icon: Gamepad2 },
+  { key: "modern", label: "Modern Methodologies", color: "#FFC0EA", icon: Lightbulb },
+  { key: "listening", label: "Listening", color: "#5B3F88", icon: Headphones },
+  { key: "immersion", label: "Immersion", color: "#FFB100", icon: Waves },
+  { key: "natives", label: "Speak With Natives", color: "#E79F53", icon: Users },
+  { key: "translation", label: "Translation Practice", color: "#D3221F", icon: Languages },
+  { key: "test_level", label: "Test Your English Level", color: "#CD308F", icon: ClipboardCheck },
+  { key: "profile", label: "Profile", color: "#FF86CE", icon: UserRound },
+  { key: "music", label: "Music", color: "#DB8E73", icon: Music },
+  { key: "community", label: "Community", color: "#3C3E3B", icon: User },
 ];
 
-export default function InitialPage() {
-  const [currentView, setCurrentView] = useState('initial');
+const ONBOARDING_QUESTIONS = [
+  {
+    id: "q1",
+    prompt: "Escolha a traducao de: 'I am looking for the train station.'",
+    options: [
+      "Estou procurando a estacao de trem.",
+      "Eu cheguei na estacao de onibus.",
+      "Vou trabalhar na estacao.",
+    ],
+    answer: 0,
+    skill: "reading",
+  },
+  {
+    id: "q2",
+    prompt: "Complete: 'She ___ to work every day.'",
+    options: ["go", "goes", "going"],
+    answer: 1,
+    skill: "grammar",
+  },
+  {
+    id: "q3",
+    prompt: "Qual resposta e mais natural para 'How was your day?'",
+    options: [
+      "It was productive, thanks for asking.",
+      "Blue window seven.",
+      "I am on yesterday.",
+    ],
+    answer: 0,
+    skill: "speaking",
+  },
+  {
+    id: "q4",
+    prompt: "Escolha a melhor traducao para 'deadline'.",
+    options: ["Prazo final", "Estrada", "Biblioteca"],
+    answer: 0,
+    skill: "vocabulary",
+  },
+  {
+    id: "q5",
+    prompt: "Qual frase esta escrita corretamente?",
+    options: [
+      "I have went to the meeting.",
+      "I went to the meeting.",
+      "I goed to the meeting.",
+    ],
+    answer: 1,
+    skill: "writing",
+  },
+];
 
-  const handleCategoryClick = (type) => {
-    console.log(type)
-    setCurrentView(type);
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function addDays(dateIso, days) {
+  const date = new Date(`${dateIso}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function ensureSrs(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.srs_global) {
+    data.modules.srs_global = {
+      queue: [],
+      completed_today: 0,
+      total_reviews: 0,
+      last_generated_date: null,
+      next_item_id: 1,
+    };
+  }
+  if (!Array.isArray(data.modules.srs_global.queue)) data.modules.srs_global.queue = [];
+  return data;
+}
+
+function clamp(value, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getDifficulty(score, errorPressure) {
+  let level = "normal";
+  if (score < 35) level = "basic";
+  if (score >= 70) level = "advanced";
+  if (errorPressure > 0.55 && level === "advanced") level = "normal";
+  if (errorPressure > 0.65 && level === "normal") level = "basic";
+  return level;
+}
+
+function scoreTrend(current, previous) {
+  const prev = Number(previous || 0);
+  const now = Number(current || 0);
+  const diff = now - prev;
+  if (diff > 4) return "up";
+  if (diff < -4) return "down";
+  return "flat";
+}
+
+function computeAdaptiveDiagnostics(progress) {
+  const modules = progress?.modules || {};
+  const previous = modules.adaptive_diagnostics || {};
+  const previousMap = Object.fromEntries(
+    (previous.skill_scores || []).map((item) => [item.skill, Number(item.score || 0)])
+  );
+
+  const grammarCompleted = Number((modules.grammar?.completed_units || []).length);
+  const writingBest = Number(modules.writing?.best_score || 0);
+  const writingAttempts = Number(modules.writing?.attempts || 0);
+  const modernMetrics = modules.modern_methodologies?.metrics || {};
+  const translationAttempts = Number(modules.translation_practice?.total_attempts || 0);
+  const translationWrong = Number(modules.translation_practice?.wrong_count || 0);
+  const translationErrorRate = translationAttempts > 0 ? translationWrong / translationAttempts : 0;
+
+  const learnedWords = Number(
+    modules.my_vocabulary?.learned_words || progress?.my_vocabulary?.learned_words || 0
+  );
+  const flashLast = modules.flashcards?.last_results || null;
+  const flashAccuracy = flashLast?.total_cards
+    ? Number(flashLast.correct_count || 0) / Number(flashLast.total_cards || 1)
+    : 0.5;
+
+  const readingCompleted = Number((modules.reading_comprehension?.completed_passages || []).length);
+  const readingBestScores = modules.reading_comprehension?.best_scores || {};
+  const readingBestValues = Object.values(readingBestScores).map((value) => Number(value || 0));
+  const readingBestAvg = readingBestValues.length
+    ? readingBestValues.reduce((sum, value) => sum + value, 0) / readingBestValues.length
+    : 0;
+
+  const listeningCompleted = Number(modules.listening?.total_completed || 0);
+  const pronounceAccuracy = Number(modules.pronounce?.last_accuracy || 0);
+  const pronounceSessions = Number(modules.pronounce?.sessions_completed || 0);
+
+  const aiMessages = Number(modules.speak_ai?.total_messages || 0);
+  const nativeSessions = Number(modules.speak_with_natives?.total_sessions || 0);
+
+  const grammarScore = clamp(
+    22 +
+      grammarCompleted * 12 +
+      Number(modernMetrics.grammar || 0) * 0.5 +
+      writingBest * 0.15 -
+      translationErrorRate * 35
+  );
+  const vocabularyScore = clamp(
+    18 + learnedWords * 0.55 + flashAccuracy * 24 + Number(modernMetrics.vocabulary || 0) * 0.4
+  );
+  const readingScore = clamp(20 + readingCompleted * 11 + readingBestAvg * 0.45);
+  const listeningScore = clamp(
+    20 + listeningCompleted * 10 + pronounceAccuracy * 0.5 + pronounceSessions * 3
+  );
+  const speakingScore = clamp(
+    16 + aiMessages * 0.9 + nativeSessions * 12 + pronounceSessions * 4 + Number(modernMetrics.context || 0) * 0.25
+  );
+  const writingScore = clamp(
+    18 +
+      writingBest * 0.55 +
+      writingAttempts * 2 +
+      Number(modernMetrics.clarity || 0) * 0.35 -
+      translationErrorRate * 28
+  );
+
+  const skillScores = [
+    {
+      skill: "grammar",
+      score: Math.round(grammarScore),
+      error_pressure: Number((translationErrorRate * 0.7).toFixed(2)),
+    },
+    {
+      skill: "vocabulary",
+      score: Math.round(vocabularyScore),
+      error_pressure: Number((Math.max(0, 0.45 - flashAccuracy / 2)).toFixed(2)),
+    },
+    {
+      skill: "reading",
+      score: Math.round(readingScore),
+      error_pressure: Number((Math.max(0, 0.5 - readingBestAvg / 200)).toFixed(2)),
+    },
+    {
+      skill: "listening",
+      score: Math.round(listeningScore),
+      error_pressure: Number((Math.max(0, 0.55 - pronounceAccuracy / 150)).toFixed(2)),
+    },
+    {
+      skill: "speaking",
+      score: Math.round(speakingScore),
+      error_pressure: Number((Math.max(0, 0.5 - aiMessages / 40)).toFixed(2)),
+    },
+    {
+      skill: "writing",
+      score: Math.round(writingScore),
+      error_pressure: Number((Math.max(0, 0.6 - writingBest / 170)).toFixed(2)),
+    },
+  ].map((item) => ({
+    ...item,
+    difficulty: getDifficulty(item.score, item.error_pressure),
+    trend: scoreTrend(item.score, previousMap[item.skill]),
+  }));
+
+  const globalScore = Math.round(
+    skillScores.reduce((sum, item) => sum + item.score, 0) / Math.max(1, skillScores.length)
+  );
+
+  const weakest = [...skillScores].sort((a, b) => a.score - b.score)[0];
+  const skillToModule = {
+    grammar: "grammar",
+    vocabulary: "my_vocabulary",
+    reading: "reading",
+    listening: "listening",
+    speaking: "speak_ai",
+    writing: "writing",
+  };
+  const recommendedModule = skillToModule[weakest?.skill] || "grammar";
+
+  return {
+    global_score: globalScore,
+    global_difficulty: getDifficulty(
+      globalScore,
+      skillScores.reduce((sum, item) => sum + item.error_pressure, 0) / Math.max(1, skillScores.length)
+    ),
+    recommended_module_key: recommendedModule,
+    focus_skill: weakest?.skill || "grammar",
+    skill_scores: skillScores,
+    last_evaluated: new Date().toISOString(),
+  };
+}
+
+function startOfWeekIso(date = new Date()) {
+  const target = new Date(date);
+  const day = target.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  target.setDate(target.getDate() + diffToMonday);
+  target.setHours(0, 0, 0, 0);
+  return target.toISOString().slice(0, 10);
+}
+
+function buildWeeklyPlan(goal = "conversacao", progress = {}) {
+  const goalKey = goal || "conversacao";
+  const weekStart = startOfWeekIso();
+  const profileXp = Number(progress?.profile?.xp || 0);
+  const baseMinutes = profileXp > 400 ? 35 : profileXp > 150 ? 28 : 22;
+
+  const templates = {
+    viagem: [
+      ["listening", "Aeroporto e hotel (listening)", baseMinutes],
+      ["translation", "Frases úteis EN<->PT para viagem", baseMinutes],
+      ["speak_ai", "Roleplay: pedir informação na rua", baseMinutes],
+      ["my_vocabulary", "Vocabulário de transporte", baseMinutes - 4],
+      ["pronounce", "Pronúncia de locais e direções", baseMinutes - 2],
+      ["immersion", "Leitura curta: roteiro turístico", baseMinutes],
+      ["flashcards", "Revisão rápida de viagem", baseMinutes - 6],
+    ],
+    trabalho: [
+      ["writing", "Email profissional e follow-up", baseMinutes + 4],
+      ["reading", "Leitura de texto de negócios", baseMinutes],
+      ["speak_ai", "Simulação de reunião", baseMinutes + 2],
+      ["dictionary", "Termos técnicos e sinônimos", baseMinutes - 4],
+      ["courses", "Módulo de inglês para carreira", baseMinutes],
+      ["listening", "Áudio de reunião em inglês", baseMinutes],
+      ["flashcards", "Revisão de vocabulário corporativo", baseMinutes - 5],
+    ],
+    prova: [
+      ["reading", "Compreensão de texto (tempo controlado)", baseMinutes + 6],
+      ["writing", "Correção de frase e coesão", baseMinutes + 4],
+      ["listening", "Treino de listening com repetição", baseMinutes + 2],
+      ["test_level", "Mini simulado por blocos", baseMinutes + 8],
+      ["grammar", "Revisão de estruturas frequentes", baseMinutes],
+      ["translation", "Tradução de alta precisão", baseMinutes],
+      ["srs", "Revisão espaçada dos pontos fracos", baseMinutes - 4],
+    ],
+    conversacao: [
+      ["speak_ai", "Conversação guiada com correção", baseMinutes + 4],
+      ["speak_ai", "Perguntas e respostas rápidas", baseMinutes],
+      ["pronounce", "Treino de sons críticos", baseMinutes - 2],
+      ["listening", "Escuta ativa + repetição", baseMinutes + 2],
+      ["speak_with_natives", "Sessão de fala com nativos", baseMinutes + 6],
+      ["immersion", "Diálogo contextual e áudio", baseMinutes],
+      ["flashcards", "Frases úteis para diálogo", baseMinutes - 6],
+    ],
   };
 
-  if (currentView === 'Grammar') {
-    return <Grammar setCurrentView={setCurrentView} color={"#b82121"} />;
+  const chosen = templates[goalKey] || templates.conversacao;
+  const dayNames = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
+  return {
+    goal: goalKey,
+    week_start: weekStart,
+    generated_at: new Date().toISOString(),
+    days: chosen.map((item, index) => ({
+      day_index: index,
+      day_name: dayNames[index],
+      module_key: item[0],
+      task: item[1],
+      minutes: Math.max(12, Number(item[2] || baseMinutes)),
+      status: "pending",
+    })),
+  };
+}
+
+function ensureErrorNotebook(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.error_notebook) {
+    data.modules.error_notebook = {
+      patterns: [],
+      total_logged: 0,
+      last_updated: null,
+      manual_notes: [],
+    };
+  }
+  if (!Array.isArray(data.modules.error_notebook.patterns)) data.modules.error_notebook.patterns = [];
+  if (!Array.isArray(data.modules.error_notebook.manual_notes)) data.modules.error_notebook.manual_notes = [];
+  return data;
+}
+
+function ensureLongTermRetention(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.long_term_retention) {
+    data.modules.long_term_retention = {
+      records: [],
+      next_item_id: 1,
+      total_tests: 0,
+      passed_tests: 0,
+      last_generated_date: null,
+      last_tested_at: null,
+    };
+  }
+  if (!Array.isArray(data.modules.long_term_retention.records)) {
+    data.modules.long_term_retention.records = [];
+  }
+  return data;
+}
+
+function ensurePedagogicalOnboarding(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.pedagogical_onboarding) {
+    data.modules.pedagogical_onboarding = {
+      completed: false,
+      completed_at: null,
+      goal: "conversacao",
+      learner_profile: "balanced",
+      daily_minutes: 20,
+      quiz_answers: {},
+      quiz_score: 0,
+      estimated_level: "A1",
+      personalized_track: ["grammar", "flashcards", "listening", "writing"],
+      recommended_module_key: "grammar",
+    };
+  }
+  return data;
+}
+
+function ensurePedagogicalReports(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.pedagogical_reports) {
+    data.modules.pedagogical_reports = {
+      history: [],
+      last_generated_at: null,
+      last_report: null,
+    };
+  }
+  if (!Array.isArray(data.modules.pedagogical_reports.history)) {
+    data.modules.pedagogical_reports.history = [];
+  }
+  return data;
+}
+
+function buildAdvancedPedagogicalReport(progress = {}) {
+  const modules = progress.modules || {};
+  const adaptive = modules.adaptive_diagnostics || {};
+  const retention = modules.long_term_retention || {};
+  const weekly = modules.weekly_study_plan || {};
+  const onboarding = modules.pedagogical_onboarding || {};
+  const profile = progress.profile || {};
+  const skillScores = Array.isArray(adaptive.skill_scores) ? adaptive.skill_scores : [];
+
+  const strongest = [...skillScores].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0] || null;
+  const weakest = [...skillScores].sort((a, b) => Number(a.score || 0) - Number(b.score || 0))[0] || null;
+
+  const totalRetention = Number(retention.total_tests || 0);
+  const passedRetention = Number(retention.passed_tests || 0);
+  const retentionRate = totalRetention > 0 ? Math.round((passedRetention / totalRetention) * 100) : 0;
+
+  const days = Array.isArray(weekly.days) ? weekly.days : [];
+  const completedDays = days.filter((day) => day.status === "done").length;
+  const consistencyRate = days.length > 0 ? Math.round((completedDays / days.length) * 100) : 0;
+
+  const reportsHistory = Array.isArray(modules.pedagogical_reports?.history)
+    ? modules.pedagogical_reports.history
+    : [];
+  const previous = reportsHistory[reportsHistory.length - 1] || null;
+
+  const currentScore = Number(adaptive.global_score || 0);
+  const previousScore = Number(previous?.global_score || 0);
+  const evolution = currentScore - previousScore;
+
+  const objective = onboarding.goal || "conversacao";
+  const level = onboarding.estimated_level || estimatedLevelFromScore(onboarding.quiz_score || 0);
+
+  const moduleHealth = [
+    { key: "grammar", label: "Grammar", value: Number((modules.grammar?.completed_units || []).length) * 12 },
+    { key: "vocabulary", label: "Vocabulary", value: Number(modules.my_vocabulary?.learned_words || 0) * 0.5 },
+    { key: "listening", label: "Listening", value: Number(modules.listening?.total_completed || 0) * 10 },
+    { key: "writing", label: "Writing", value: Number(modules.writing?.best_score || 0) },
+    { key: "speaking", label: "Speaking", value: Number(modules.speak_ai?.total_messages || 0) * 2 },
+  ].map((item) => ({ ...item, value: clamp(Math.round(item.value), 0, 100) }));
+
+  const generatedAt = new Date().toISOString();
+  return {
+    id: `report_${Date.now()}`,
+    generated_at: generatedAt,
+    global_score: currentScore,
+    level_estimate: level,
+    objective,
+    retention_rate: retentionRate,
+    consistency_rate: consistencyRate,
+    xp: Number(profile.xp || 0),
+    streak_days: Number(profile.streak_days || 0),
+    strongest_skill: strongest ? strongest.skill : null,
+    weakest_skill: weakest ? weakest.skill : null,
+    score_evolution: evolution,
+    module_health: moduleHealth,
+    recommendations: [
+      weakest ? `Priorizar ${skillLabelStatic(weakest.skill)} nas próximas 72h.` : "Iniciar prática de grammar.",
+      retentionRate < 65
+        ? "Aumentar revisões espaçadas de 7 e 30 dias para consolidar memória."
+        : "Manter revisões espaçadas atuais para preservar retenção.",
+      consistencyRate < 60
+        ? "Reduzir meta diária e aumentar consistência semanal."
+        : "Consistência semanal adequada, pode elevar dificuldade.",
+    ],
+  };
+}
+
+function skillLabelStatic(skillKey) {
+  const map = {
+    grammar: "Grammar",
+    vocabulary: "Vocabulary",
+    reading: "Reading",
+    listening: "Listening",
+    speaking: "Speaking",
+    writing: "Writing",
+  };
+  return map[skillKey] || skillKey;
+}
+
+function estimatedLevelFromScore(score = 0) {
+  if (score >= 90) return "C1";
+  if (score >= 80) return "B2";
+  if (score >= 65) return "B1";
+  if (score >= 45) return "A2";
+  return "A1";
+}
+
+function buildPersonalizedTrack(goal = "conversacao", learnerProfile = "balanced") {
+  const goalTracks = {
+    viagem: ["listening", "translation", "my_vocabulary", "speak_ai", "immersion", "flashcards"],
+    trabalho: ["writing", "reading", "dictionary", "courses", "speak_ai", "listening"],
+    prova: ["reading", "writing", "grammar", "translation", "test_level", "flashcards"],
+    conversacao: ["speak_ai", "pronounce", "listening", "natives", "immersion", "flashcards"],
+  };
+  const profileBoost = {
+    visual: "reading",
+    auditivo: "listening",
+    pratico: "speak_ai",
+    balanced: "grammar",
+  };
+  const base = goalTracks[goal] || goalTracks.conversacao;
+  const booster = profileBoost[learnerProfile] || profileBoost.balanced;
+  const merged = [booster, ...base, "grammar", "my_vocabulary"];
+  return [...new Set(merged)].slice(0, 8);
+}
+
+function normalizeRetentionDue(records, now = todayIso()) {
+  return (records || []).map((item) => {
+    if (item.status === "done") return item;
+    const dueNow = item.scheduled_for <= now;
+    return {
+      ...item,
+      status: dueNow ? "due" : "scheduled",
+    };
+  });
+}
+
+function buildRetentionSeeds(progress, existingRecords = [], limit = 3) {
+  const existingKeys = new Set((existingRecords || []).filter((item) => item.status !== "done").map((item) => item.key));
+  const candidates = buildSrsCandidates(progress).filter((item) => !existingKeys.has(item.key)).slice(0, limit);
+  return candidates;
+}
+
+function buildRecurringErrorPatterns(progress, previousPatterns = []) {
+  const modules = progress?.modules || {};
+  const prevMap = Object.fromEntries((previousPatterns || []).map((item) => [item.key, item]));
+  const patterns = [];
+
+  const translationAttempts = Number(modules.translation_practice?.total_attempts || 0);
+  const translationWrong = Number(modules.translation_practice?.wrong_count || 0);
+  const translationErrorRate = translationAttempts > 0 ? translationWrong / translationAttempts : 0;
+  if (translationAttempts >= 5 && translationErrorRate >= 0.25) {
+    patterns.push({
+      key: "preposicoes",
+      title: "Preposicoes",
+      rule: "Treinar in/on/at, to/for e from/of em frases curtas.",
+      wrong_example: "I am in the bus",
+      right_example: "I am on the bus",
+      occurrences: Math.max(2, Math.round(translationWrong * 0.55)),
+    });
   }
 
-  if (currentView === 'FlashCards') { // Use o 'label' do seu array de categorias
-    return <Flashcards setCurrentView={setCurrentView} color={"#ed5215"} />;
+  const writingBest = Number(modules.writing?.best_score || 0);
+  const writingAttempts = Number(modules.writing?.attempts || 0);
+  if (writingAttempts >= 3 && writingBest < 65) {
+    patterns.push({
+      key: "ordem_palavras",
+      title: "Ordem das palavras",
+      rule: "Praticar estrutura sujeito + verbo + complemento.",
+      wrong_example: "Always I study English",
+      right_example: "I always study English",
+      occurrences: Math.max(2, Math.round((70 - writingBest) / 8)),
+    });
   }
 
-  if (currentView === 'Listening') { // Use o 'label' do seu array de categorias
-    return <Listening setCurrentView={setCurrentView} color={"#F1C40F"} />;
+  const grammarCompleted = Number((modules.grammar?.completed_units || []).length);
+  const grammarMetric = Number(modules.modern_methodologies?.metrics?.grammar || 0);
+  if (grammarCompleted > 0 && grammarMetric < 35) {
+    patterns.push({
+      key: "concordancia_verbal",
+      title: "Concordancia verbal",
+      rule: "Revisar he/she/it + verbo com s no presente simples.",
+      wrong_example: "She go to school",
+      right_example: "She goes to school",
+      occurrences: Math.max(1, Math.round((35 - grammarMetric) / 7)),
+    });
   }
 
-  if (currentView === 'My vocabulary') { // Use o 'label' do seu array de categorias
-    return <MyVocabulary setCurrentView={setCurrentView} color={"#096105"} />;
+  const listeningDone = Number(modules.listening?.total_completed || 0);
+  const pronounceAccuracy = Number(modules.pronounce?.last_accuracy || 0);
+  if (listeningDone > 0 && pronounceAccuracy < 55) {
+    patterns.push({
+      key: "confusao_sons",
+      title: "Confusao de sons",
+      rule: "Treinar pares minimos e repetir com audio mais lento.",
+      wrong_example: "ship/sheep trocados",
+      right_example: "ship (I) vs sheep (i:)",
+      occurrences: Math.max(1, Math.round((60 - pronounceAccuracy) / 10)),
+    });
   }
-  
-  if (currentView === 'SpeakWithAI') { // Use o 'label' do seu array de categorias
-    return <SpeakWithAI setCurrentView={setCurrentView} color={"#096105"}/>;
+
+  const manualPatterns = (previousPatterns || []).filter((item) => item.source === "manual");
+  const mergedAuto = patterns.map((item) => {
+    const prev = prevMap[item.key];
+    return {
+      ...item,
+      id: prev?.id || `err_${item.key}`,
+      source: "auto",
+      status: prev?.status || "active",
+      review_count: Number(prev?.review_count || 0),
+      occurrences: Math.max(Number(item.occurrences || 0), Number(prev?.occurrences || 0)),
+      last_seen: new Date().toISOString(),
+    };
+  });
+
+  const all = [...mergedAuto, ...manualPatterns];
+  return all.sort((a, b) => Number(b.occurrences || 0) - Number(a.occurrences || 0)).slice(0, 12);
+}
+
+function buildSrsCandidates(progress) {
+  const modules = progress?.modules || {};
+  const candidates = [];
+
+  const learnedWords = modules.my_vocabulary?.learned_word_ids || [];
+  if (learnedWords.length > 0) {
+    candidates.push({
+      key: `vocab_${learnedWords[0]}`,
+      module: "Vocabulary",
+      title: "Revisar palavra aprendida",
+      prompt: "Tente lembrar a tradução e use em uma frase curta.",
+    });
+  }
+  if ((modules.grammar?.completed_units || []).length > 0) {
+    candidates.push({
+      key: "grammar_recent",
+      module: "Grammar",
+      title: "Revisar última unidade de grammar",
+      prompt: "Recapitule a estrutura e fale 2 exemplos.",
+    });
+  }
+  if ((modules.translation_practice?.total_attempts || 0) > 0) {
+    candidates.push({
+      key: "translation_mix",
+      module: "Translation",
+      title: "Revisar tradução EN <-> PT",
+      prompt: "Faça 3 traduções rápidas sem ajuda.",
+    });
+  }
+  if ((modules.listening?.total_completed || 0) > 0) {
+    candidates.push({
+      key: "listening_audio",
+      module: "Listening",
+      title: "Revisar frases de listening",
+      prompt: "Ouça e repita com pausa curta.",
+    });
+  }
+  if (modules.flashcards?.last_results) {
+    candidates.push({
+      key: "flashcards_memory",
+      module: "Flashcards",
+      title: "Revisar deck recente de flashcards",
+      prompt: "Passe em 5 cards com resposta ativa.",
+    });
+  }
+  if (candidates.length === 0) {
+    candidates.push({
+      key: "starter_review",
+      module: "Starter",
+      title: "Primeira revisão global",
+      prompt: "Comece pelo módulo Grammar e finalize 1 lição.",
+    });
+  }
+  return candidates.slice(0, 5);
+}
+
+function SidebarButton({ module, active, onClick, index }) {
+  const Icon = module.icon;
+  const offsetClass = index % 2 === 0 ? "offset-left" : "offset-right";
+  const mascotOverride = {
+    flashcards: "bea",
+    pronounce: "lucy",
+    writing: "oscar",
+    immersion: "bea",
+  };
+  const mascot = mascotOverride[module.key] || getPersonByColor(module.color);
+
+  return (
+    <button
+      type="button"
+      className={`duo-unit-btn ${active ? "is-open" : "is-locked"} ${offsetClass}`}
+      style={{
+        "--unit-color": module.color,
+        "--unit-shadow": darken(module.color, 26),
+      }}
+      onClick={() => onClick(module.key)}
+      title={module.label}
+    >
+      <span className="duo-unit-icon">
+        <Icon size={20} />
+      </span>
+      <span className="duo-unit-text">{module.label}</span>
+      <span className="duo-unit-mascot" aria-hidden="true">
+        <img src={`/img/persons/${mascot}.png`} alt="" loading="lazy" />
+      </span>
+    </button>
+  );
+}
+
+function PlaceholderScreen({ module, onBack }) {
+  return (
+    <section
+      className="duo-page-shell"
+      style={{
+        "--page-theme": module.color,
+        "--page-theme-soft": alpha(module.color, 0.18),
+        "--page-theme-border": alpha(module.color, 0.35),
+      }}
+    >
+      <div className="duo-page-header">
+        <button type="button" className="duo-back-btn" onClick={onBack}>
+          Voltar
+        </button>
+        <div>
+          <div className="duo-page-kicker">Modulo em restauracao</div>
+          <h1>{module.label}</h1>
+        </div>
+      </div>
+
+      <div className="duo-placeholder-card">
+        <h2>{module.label}</h2>
+        <p>
+          A estrutura Duolingo desta aba sera restaurada novamente. A base visual e o
+          tema deste modulo ja foram reaplicados.
+        </p>
+        <div className="duo-placeholder-chip-row">
+          <span className="duo-chip">Tema {module.color}</span>
+          <span className="duo-chip">Layout web</span>
+          <span className="duo-chip">Pronto para migracao</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function InitialPage() {
+  const [selectedModuleKey, setSelectedModuleKey] = useState("grammar");
+  const [activeScreen, setActiveScreen] = useState("home");
+  const [profileStats, setProfileStats] = useState({ xp: 124, streak_days: 7, hearts: 5 });
+  const [srsState, setSrsState] = useState({
+    queue: [],
+    completed_today: 0,
+    total_reviews: 0,
+    last_generated_date: null,
+    next_item_id: 1,
+  });
+  const [adaptiveState, setAdaptiveState] = useState({
+    global_score: 0,
+    global_difficulty: "normal",
+    recommended_module_key: "grammar",
+    focus_skill: "grammar",
+    skill_scores: [],
+    last_evaluated: null,
+  });
+  const [weeklyPlanState, setWeeklyPlanState] = useState({
+    goal: "conversacao",
+    week_start: null,
+    generated_at: null,
+    days: [],
+  });
+  const [errorNotebookState, setErrorNotebookState] = useState({
+    patterns: [],
+    total_logged: 0,
+    last_updated: null,
+    manual_notes: [],
+  });
+  const [retentionState, setRetentionState] = useState({
+    records: [],
+    next_item_id: 1,
+    total_tests: 0,
+    passed_tests: 0,
+    last_generated_date: null,
+    last_tested_at: null,
+  });
+  const [pedagogicalReportState, setPedagogicalReportState] = useState({
+    history: [],
+    last_generated_at: null,
+    last_report: null,
+  });
+  const [manualErrorInput, setManualErrorInput] = useState("");
+  const [onboardingState, setOnboardingState] = useState({
+    completed: false,
+    completed_at: null,
+    goal: "conversacao",
+    learner_profile: "balanced",
+    daily_minutes: 20,
+    quiz_answers: {},
+    quiz_score: 0,
+    estimated_level: "A1",
+    personalized_track: ["grammar", "flashcards", "listening", "writing"],
+    recommended_module_key: "grammar",
+  });
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+  const [onboardingAnswers, setOnboardingAnswers] = useState({});
+  const [onboardingGoal, setOnboardingGoal] = useState("conversacao");
+  const [onboardingProfile, setOnboardingProfile] = useState("balanced");
+  const [onboardingMinutes, setOnboardingMinutes] = useState(20);
+
+  const selectedModule = useMemo(
+    () => MODULES.find((m) => m.key === selectedModuleKey) || MODULES[0],
+    [selectedModuleKey]
+  );
+  const SelectedModuleIcon = selectedModule.icon;
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/progress", { cache: "no-store" });
+        if (!res.ok) return;
+        const parsed = await res.json();
+        const normalized = ensurePedagogicalReports(
+          ensurePedagogicalOnboarding(
+            ensureLongTermRetention(ensureErrorNotebook(ensureSrs(parsed)))
+          )
+        );
+        if (!mounted) return;
+
+        setProfileStats({
+          xp: Number(normalized.profile?.xp || 0),
+          streak_days: Number(normalized.profile?.streak_days || 0),
+          hearts: Number(normalized.profile?.hearts || 5),
+        });
+
+        let nextSrs = { ...normalized.modules.srs_global };
+        const previousAdaptive = normalized.modules.adaptive_diagnostics || {};
+        const nextAdaptive = computeAdaptiveDiagnostics(normalized);
+        normalized.modules.adaptive_diagnostics = nextAdaptive;
+        const previousNotebook = normalized.modules.error_notebook || {};
+        const nextPatterns = buildRecurringErrorPatterns(
+          normalized,
+          previousNotebook.patterns || []
+        );
+        const nextNotebook = {
+          patterns: nextPatterns,
+          total_logged: nextPatterns.reduce(
+            (sum, pattern) => sum + Number(pattern.occurrences || 0),
+            0
+          ),
+          last_updated: new Date().toISOString(),
+          manual_notes: Array.isArray(previousNotebook.manual_notes)
+            ? previousNotebook.manual_notes
+            : [],
+        };
+        normalized.modules.error_notebook = nextNotebook;
+        const previousRetention = normalized.modules.long_term_retention || {};
+        let nextRetention = {
+          ...previousRetention,
+          records: normalizeRetentionDue(previousRetention.records || [], todayIso()),
+        };
+        const previousWeeklyPlan = normalized.modules.weekly_study_plan || null;
+        const currentOnboarding = normalized.modules.pedagogical_onboarding || null;
+        let nextWeeklyPlan = previousWeeklyPlan;
+        const currentWeekStart = startOfWeekIso();
+        if (
+          !previousWeeklyPlan ||
+          !previousWeeklyPlan.week_start ||
+          previousWeeklyPlan.week_start !== currentWeekStart ||
+          !Array.isArray(previousWeeklyPlan.days)
+        ) {
+          nextWeeklyPlan = buildWeeklyPlan(previousWeeklyPlan?.goal || "conversacao", normalized);
+          normalized.modules.weekly_study_plan = nextWeeklyPlan;
+        }
+        const today = todayIso();
+        let shouldSave = false;
+        if (nextSrs.last_generated_date !== today) {
+          const candidates = buildSrsCandidates(normalized);
+          const firstId = Number(nextSrs.next_item_id || 1);
+          nextSrs = {
+            ...nextSrs,
+            completed_today: 0,
+            last_generated_date: today,
+            next_item_id: firstId + candidates.length,
+            queue: candidates.map((candidate, idx) => ({
+              id: firstId + idx,
+              key: candidate.key,
+              module: candidate.module,
+              title: candidate.title,
+              prompt: candidate.prompt,
+              due_date: today,
+              interval_days: 1,
+              status: "due",
+            })),
+          };
+          normalized.modules.srs_global = nextSrs;
+          shouldSave = true;
+        }
+
+        if (JSON.stringify(previousAdaptive) !== JSON.stringify(nextAdaptive)) {
+          shouldSave = true;
+        }
+        if (JSON.stringify(previousNotebook) !== JSON.stringify(nextNotebook)) {
+          shouldSave = true;
+        }
+        const hasActiveRetention = (nextRetention.records || []).some((item) => item.status !== "done");
+        if (!hasActiveRetention || nextRetention.last_generated_date !== todayIso()) {
+          const seeds = buildRetentionSeeds(normalized, nextRetention.records || [], 3);
+          if (seeds.length > 0) {
+            const startId = Number(nextRetention.next_item_id || 1);
+            const created = seeds.map((seed, index) => ({
+              id: startId + index,
+              key: seed.key,
+              title: seed.title,
+              module: seed.module,
+              prompt: seed.prompt,
+              scheduled_days: 7,
+              scheduled_for: todayIso(),
+              status: "due",
+              attempts: 0,
+              source_date: todayIso(),
+              stage: "7d",
+              last_score: null,
+            }));
+            nextRetention = {
+              ...nextRetention,
+              records: [...(nextRetention.records || []), ...created],
+              next_item_id: startId + created.length,
+              last_generated_date: todayIso(),
+            };
+            normalized.modules.long_term_retention = nextRetention;
+            shouldSave = true;
+          }
+        }
+        if (JSON.stringify(previousRetention) !== JSON.stringify(nextRetention)) {
+          shouldSave = true;
+        }
+        if (JSON.stringify(previousWeeklyPlan) !== JSON.stringify(nextWeeklyPlan)) {
+          shouldSave = true;
+        }
+
+        if (shouldSave) {
+          await fetch("/api/progress", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(normalized),
+          });
+        }
+
+        setSrsState(nextSrs);
+        setAdaptiveState(nextAdaptive);
+        setWeeklyPlanState(nextWeeklyPlan || buildWeeklyPlan("conversacao", normalized));
+        setErrorNotebookState(nextNotebook);
+        setRetentionState(nextRetention);
+        setPedagogicalReportState(normalized.modules.pedagogical_reports || {
+          history: [],
+          last_generated_at: null,
+          last_report: null,
+        });
+        setOnboardingState(currentOnboarding);
+        setOnboardingGoal(currentOnboarding?.goal || "conversacao");
+        setOnboardingProfile(currentOnboarding?.learner_profile || "balanced");
+        setOnboardingMinutes(Number(currentOnboarding?.daily_minutes || 20));
+        setOnboardingAnswers(currentOnboarding?.quiz_answers || {});
+        setShowOnboarding(!currentOnboarding?.completed);
+        setOnboardingStep(0);
+        if (currentOnboarding?.recommended_module_key) {
+          setSelectedModuleKey(currentOnboarding.recommended_module_key);
+        }
+      } catch {
+        if (!mounted) return;
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const dueItems = useMemo(
+    () => (srsState.queue || []).filter((item) => item.status === "due"),
+    [srsState.queue]
+  );
+  const srsWeekStats = useMemo(() => {
+    const queue = Array.isArray(srsState.queue) ? srsState.queue : [];
+    const today = todayIso();
+    const weekLimit = addDays(today, 7);
+    const withDate = queue.filter((item) => typeof item.due_date === "string" && item.due_date.length >= 10);
+    const overdue = withDate.filter((item) => item.due_date < today && item.status !== "done").length;
+    const dueToday = withDate.filter((item) => item.due_date === today && item.status !== "done").length;
+    const dueNext7 = withDate.filter(
+      (item) => item.due_date > today && item.due_date <= weekLimit && item.status !== "done"
+    ).length;
+    const totalWindow = overdue + dueToday + dueNext7;
+    return {
+      overdue,
+      dueToday,
+      dueNext7,
+      totalWindow,
+      weekProgress: totalWindow > 0 ? Math.round(((dueToday + dueNext7) / totalWindow) * 100) : 0,
+    };
+  }, [srsState.queue]);
+
+  const completeReview = async (itemId) => {
+    const target = (srsState.queue || []).find((item) => item.id === itemId);
+    if (!target) return;
+
+    const nextInterval = target.interval_days >= 7 ? 14 : target.interval_days >= 3 ? 7 : 3;
+    const today = todayIso();
+    const nextQueue = (srsState.queue || []).map((item) =>
+      item.id === itemId
+        ? {
+            ...item,
+            status: "scheduled",
+            interval_days: nextInterval,
+            due_date: addDays(today, nextInterval),
+          }
+        : item
+    );
+
+    const nextSrs = {
+      ...srsState,
+      queue: nextQueue,
+      completed_today: Number(srsState.completed_today || 0) + 1,
+      total_reviews: Number(srsState.total_reviews || 0) + 1,
+    };
+    setSrsState(nextSrs);
+
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = ensureSrs(await res.json());
+      progress.modules.srs_global = {
+        ...progress.modules.srs_global,
+        ...nextSrs,
+      };
+      await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(progress),
+      });
+    } catch {
+      // no-op
+    }
+  };
+
+  const skillLabel = (skillKey) => {
+    const map = {
+      grammar: "Grammar",
+      vocabulary: "Vocabulary",
+      reading: "Reading",
+      listening: "Listening",
+      speaking: "Speaking",
+      writing: "Writing",
+    };
+    return map[skillKey] || skillKey;
+  };
+
+  const difficultyLabel = (level) => {
+    if (level === "basic") return "Base";
+    if (level === "advanced") return "Avançado";
+    return "Normal";
+  };
+
+  const goalLabel = (goal) => {
+    const map = {
+      viagem: "Viagem",
+      trabalho: "Trabalho",
+      prova: "Prova",
+      conversacao: "Conversacao",
+    };
+    return map[goal] || "Conversacao";
+  };
+
+  const saveWeeklyPlan = async (nextPlan) => {
+    setWeeklyPlanState(nextPlan);
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = await res.json();
+      if (!progress.modules) progress.modules = {};
+      progress.modules.weekly_study_plan = nextPlan;
+      await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(progress),
+      });
+    } catch {
+      // no-op
+    }
+  };
+
+  const regenerateWeeklyPlan = async (goal = weeklyPlanState.goal || "conversacao") => {
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = await res.json();
+      const next = buildWeeklyPlan(goal, progress);
+      await saveWeeklyPlan(next);
+    } catch {
+      // no-op
+    }
+  };
+
+  const updateWeeklyGoal = async (goal) => {
+    if (!goal) return;
+    await regenerateWeeklyPlan(goal);
+  };
+
+  const toggleWeeklyDayDone = async (dayIndex) => {
+    const days = Array.isArray(weeklyPlanState.days) ? weeklyPlanState.days : [];
+    const nextDays = days.map((day) =>
+      day.day_index === dayIndex
+        ? { ...day, status: day.status === "done" ? "pending" : "done" }
+        : day
+    );
+    const nextPlan = {
+      ...weeklyPlanState,
+      days: nextDays,
+      generated_at: weeklyPlanState.generated_at || new Date().toISOString(),
+    };
+    await saveWeeklyPlan(nextPlan);
+  };
+
+  const saveErrorNotebook = async (nextNotebook) => {
+    setErrorNotebookState(nextNotebook);
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = ensureErrorNotebook(await res.json());
+      progress.modules.error_notebook = nextNotebook;
+      await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(progress),
+      });
+    } catch {
+      // no-op
+    }
+  };
+
+  const togglePatternReviewed = async (patternId) => {
+    const nextPatterns = (errorNotebookState.patterns || []).map((item) =>
+      item.id === patternId
+        ? {
+            ...item,
+            status: item.status === "reviewed" ? "active" : "reviewed",
+            review_count: Number(item.review_count || 0) + 1,
+          }
+        : item
+    );
+    const nextNotebook = {
+      ...errorNotebookState,
+      patterns: nextPatterns,
+      total_logged: nextPatterns.reduce((sum, pattern) => sum + Number(pattern.occurrences || 0), 0),
+      last_updated: new Date().toISOString(),
+    };
+    await saveErrorNotebook(nextNotebook);
+  };
+
+  const addManualErrorPattern = async () => {
+    const text = manualErrorInput.trim();
+    if (!text) return;
+    const pattern = {
+      id: `err_manual_${Date.now()}`,
+      key: `manual_${Date.now()}`,
+      title: text,
+      rule: "Erro anotado manualmente pelo aluno.",
+      wrong_example: "-",
+      right_example: "-",
+      occurrences: 1,
+      source: "manual",
+      status: "active",
+      review_count: 0,
+      last_seen: new Date().toISOString(),
+    };
+    const nextPatterns = [pattern, ...(errorNotebookState.patterns || [])].slice(0, 12);
+    const nextNotebook = {
+      ...errorNotebookState,
+      patterns: nextPatterns,
+      total_logged: nextPatterns.reduce((sum, item) => sum + Number(item.occurrences || 0), 0),
+      last_updated: new Date().toISOString(),
+      manual_notes: [
+        { id: `note_${Date.now()}`, text, created_at: new Date().toISOString() },
+        ...(errorNotebookState.manual_notes || []),
+      ].slice(0, 20),
+    };
+    setManualErrorInput("");
+    await saveErrorNotebook(nextNotebook);
+  };
+
+  const answerOnboardingQuestion = (questionId, optionIndex) => {
+    setOnboardingAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+  };
+
+  const onboardingScore = useMemo(() => {
+    const hits = ONBOARDING_QUESTIONS.reduce((sum, question) => {
+      return sum + (Number(onboardingAnswers[question.id]) === Number(question.answer) ? 1 : 0);
+    }, 0);
+    return Math.round((hits / ONBOARDING_QUESTIONS.length) * 100);
+  }, [onboardingAnswers]);
+
+  const saveOnboarding = async () => {
+    const track = buildPersonalizedTrack(onboardingGoal, onboardingProfile);
+    const level = estimatedLevelFromScore(onboardingScore);
+    const payload = {
+      completed: true,
+      completed_at: new Date().toISOString(),
+      goal: onboardingGoal,
+      learner_profile: onboardingProfile,
+      daily_minutes: Number(onboardingMinutes || 20),
+      quiz_answers: onboardingAnswers,
+      quiz_score: onboardingScore,
+      estimated_level: level,
+      personalized_track: track,
+      recommended_module_key: track[0] || "grammar",
+    };
+    setOnboardingState(payload);
+    setSelectedModuleKey(payload.recommended_module_key);
+    setShowOnboarding(false);
+    setOnboardingStep(0);
+
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = ensurePedagogicalOnboarding(await res.json());
+      progress.modules.pedagogical_onboarding = payload;
+      progress.modules.weekly_study_plan = buildWeeklyPlan(onboardingGoal, progress);
+      if (!progress.modules.profile) progress.modules.profile = {};
+      progress.modules.profile.daily_goal_minutes = Number(onboardingMinutes || 20);
+      await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(progress),
+      });
+      setWeeklyPlanState(progress.modules.weekly_study_plan);
+    } catch {
+      // no-op
+    }
+  };
+
+  const saveRetentionState = async (nextRetention) => {
+    setRetentionState(nextRetention);
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = ensureLongTermRetention(await res.json());
+      progress.modules.long_term_retention = nextRetention;
+      await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(progress),
+      });
+    } catch {
+      // no-op
+    }
+  };
+
+  const savePedagogicalReportState = async (nextReports) => {
+    setPedagogicalReportState(nextReports);
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = ensurePedagogicalReports(await res.json());
+      progress.modules.pedagogical_reports = nextReports;
+      await fetch("/api/progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(progress),
+      });
+    } catch {
+      // no-op
+    }
+  };
+
+  const generatePedagogicalReport = async () => {
+    try {
+      const res = await fetch("/api/progress", { cache: "no-store" });
+      if (!res.ok) return;
+      const progress = ensurePedagogicalReports(await res.json());
+      const report = buildAdvancedPedagogicalReport(progress);
+      const history = [...(progress.modules.pedagogical_reports.history || []), report].slice(-20);
+      const next = {
+        history,
+        last_generated_at: report.generated_at,
+        last_report: report,
+      };
+      await savePedagogicalReportState(next);
+    } catch {
+      // no-op
+    }
+  };
+
+  const exportPedagogicalReport = () => {
+    const report = pedagogicalReportState.last_report;
+    if (!report) return;
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `pedagogical-report-${todayIso()}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  };
+
+  const runRetentionTest = async (recordId, passed = true) => {
+    const now = todayIso();
+    const current = (retentionState.records || []).find((item) => item.id === recordId);
+    if (!current || current.status === "done") return;
+
+    let nextId = Number(retentionState.next_item_id || 1);
+    const followUps = [];
+    const updated = (retentionState.records || []).map((item) => {
+      if (item.id !== recordId) return item;
+
+      const attempts = Number(item.attempts || 0) + 1;
+      if (passed && Number(item.scheduled_days || 7) === 7) {
+        followUps.push({
+          id: nextId++,
+          key: `${item.key}_30d`,
+          title: item.title,
+          module: item.module,
+          prompt: item.prompt,
+          scheduled_days: 30,
+          scheduled_for: addDays(now, 30),
+          status: "scheduled",
+          attempts: 0,
+          source_date: now,
+          stage: "30d",
+          last_score: null,
+        });
+      }
+
+      if (passed) {
+        return {
+          ...item,
+          status: "done",
+          attempts,
+          completed_at: now,
+          last_score: Math.max(70, Number(item.last_score || 0), 82),
+        };
+      }
+
+      const retryGap = Number(item.scheduled_days || 7) === 7 ? 2 : 4;
+      return {
+        ...item,
+        status: "scheduled",
+        attempts,
+        scheduled_for: addDays(now, retryGap),
+        last_score: 45,
+      };
+    });
+
+    const normalizedRecords = normalizeRetentionDue([...updated, ...followUps], now);
+    const nextRetention = {
+      ...retentionState,
+      records: normalizedRecords,
+      next_item_id: nextId,
+      total_tests: Number(retentionState.total_tests || 0) + 1,
+      passed_tests: Number(retentionState.passed_tests || 0) + (passed ? 1 : 0),
+      last_tested_at: new Date().toISOString(),
+    };
+    await saveRetentionState(nextRetention);
+  };
+
+  const retentionDueItems = useMemo(
+    () => (retentionState.records || []).filter((item) => item.status === "due"),
+    [retentionState.records]
+  );
+  const retentionRate = useMemo(() => {
+    const total = Number(retentionState.total_tests || 0);
+    if (total <= 0) return 0;
+    return Math.round((Number(retentionState.passed_tests || 0) / total) * 100);
+  }, [retentionState.passed_tests, retentionState.total_tests]);
+  const retentionProgressMax = Math.max(
+    1,
+    Number(retentionState.total_tests || 0) + Number(retentionDueItems.length || 0)
+  );
+  const lastPedagogicalReport = pedagogicalReportState.last_report || null;
+
+  if (activeScreen === "module" && selectedModule.key === "grammar") {
+    return (
+      <Grammar
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "flashcards") {
+    return (
+      <Flashcards
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "my_vocabulary") {
+    return (
+      <MyVocabulary
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "dictionary") {
+    return (
+      <Dictionary
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "courses") {
+    return (
+      <Courses
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "speak_ai") {
+    return (
+      <SpeakWithAI
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "reading") {
+    return (
+      <ReadingComprehension
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "pronounce") {
+    return (
+      <Pronounce
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "writing") {
+    return (
+      <Writing
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "games") {
+    return (
+      <Games
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "modern") {
+    return (
+      <Modernmethodologies
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "listening") {
+    return (
+      <Listening
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "immersion") {
+    return (
+      <Immersion
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "natives") {
+    return (
+      <SpeakWithnatives
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "translation") {
+    return (
+      <TranslationPractice
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "test_level") {
+    return (
+      <TestYourEnglishLevel
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "community") {
+    return (
+      <Community
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "profile") {
+    return (
+      <ProfileModule
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module" && selectedModule.key === "music") {
+    return (
+      <MusicModule
+        setCurrentView={() => setActiveScreen("home")}
+        color={selectedModule.color}
+      />
+    );
+  }
+
+  if (activeScreen === "module") {
+    return (
+      <PlaceholderScreen
+        module={selectedModule}
+        onBack={() => setActiveScreen("home")}
+      />
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <h1 className="text-gray-900">English Learning Platform</h1>
-          <nav className="flex gap-2 mt-4">
-            <button className="px-4 py-2 bg-gray-900 text-white rounded-lg transition-colors hover:bg-gray-800">Home</button>
-            <button className="px-4 py-2 bg-gray-100 text-gray-900 rounded-lg transition-colors hover:bg-gray-200">Progress</button>
-            <button className="px-4 py-2 bg-gray-100 text-gray-900 rounded-lg transition-colors hover:bg-gray-200">Profile</button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h2 className="text-gray-900 mb-2">Choose Your Learning Path</h2>
-          <p className="text-gray-600">Select a category to start improving your English skills</p>
+    <div className="duo-home-layout">
+      <aside className="duo-left-sidebar">
+        <div className="duo-logo-block">
+          <a aria-current="" className="duo-brand-link" href="">
+            <img
+              className="sOuBs"
+              src="https://d35aaqx5ub95lt.cloudfront.net/vendor/70a4be81077a8037698067f583816ff9.svg"
+              alt="Duolingo"
+            />
+            <img
+              className="_1C091"
+              src="https://d35aaqx5ub95lt.cloudfront.net/vendor/0cecd302cf0bcd0f73d51768feff75fe.svg"
+              alt="Duolingo logo"
+            />
+          </a>
         </div>
 
-        {/* Category Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {categories.map((category, index) => {
-            const Icon = category.icon;
-            return (
-              <button key={index} className={`botao-color`} style={{ color: '#FFF', backgroundColor: category.color, boxShadow: "0 4px 0 " + category.shadow }} title={category.label} onClick={() => handleCategoryClick(category.label.replaceAll(' ', ''))}>
-                <Icon className="w-8 h-8" />
-                <span className="text-center">{category.name}</span>
+        <div className="duo-sidebar-list">
+          {MODULES.map((module, index) => (
+            <SidebarButton
+              key={module.key}
+              module={module}
+              index={index}
+              active={selectedModule.key === module.key}
+              onClick={setSelectedModuleKey}
+            />
+          ))}
+        </div>
+      </aside>
+
+      <main className="duo-center-panel">
+        <div className="duo-top-stats">
+          <div className="duo-stat-pill duo-stat-blue">
+            <Gem size={16} />
+            <span>{profileStats.xp} XP</span>
+          </div>
+          <div className="duo-stat-pill duo-stat-orange">
+            <Flame size={16} />
+            <span>{profileStats.streak_days} dias</span>
+          </div>
+          <div className="duo-stat-pill duo-stat-heart">
+            <Heart size={16} />
+            <span>{profileStats.hearts}</span>
+          </div>
+        </div>
+
+        {selectedModule.key === "grammar" ? (
+          <section className="duo-grammar-section-card">
+            <div className="duo-grammar-section-top">
+              <span className="duo-grammar-section-kicker">B1 • VER DETALHES</span>
+              <button type="button" className="duo-grammar-review-btn" onClick={() => setActiveScreen("module")}>
+                REVISAR
               </button>
-            );
-          })}
-        </div>
+            </div>
+            <h1>Seção 6</h1>
+            <div className="duo-grammar-complete-line">
+              <CheckCircle2 size={18} />
+              <span>CONCLUÍDO!</span>
+            </div>
+            <div className="duo-grammar-progress-wrap">
+              <div className="duo-grammar-progress-track">
+                <div className="duo-grammar-progress-fill" style={{ width: `${Math.max(8, Math.min(100, Number(adaptiveState.global_score || 0)))}%` }} />
+              </div>
+              <span>{Math.max(8, Math.min(100, Number(adaptiveState.global_score || 0)))}%</span>
+            </div>
+            <button type="button" className="duo-open-module-btn duo-grammar-continue-btn" onClick={() => setActiveScreen("module")}>
+              CONTINUAR
+            </button>
+          </section>
+        ) : (
+          <section
+            className="duo-current-card"
+            style={{
+              "--unit-color": selectedModule.color,
+              "--unit-shadow": darken(selectedModule.color, 26),
+              "--unit-glow": alpha(selectedModule.color, 0.16),
+            }}
+          >
+            <div className="duo-current-card-kicker">MENU ATUAL SELECIONADO</div>
+            <h1>{selectedModule.label}</h1>
+            <p>
+              Restaurando a interface estilo Duolingo e o fluxo do modulo por etapas.
+            </p>
+            <button
+              type="button"
+              className="duo-open-module-btn"
+              onClick={() => setActiveScreen("module")}
+            >
+              <SelectedModuleIcon size={18} />
+              Abrir modulo
+              <ChevronRight size={18} />
+            </button>
+          </section>
+        )}
+
       </main>
+
+      <aside className="duo-right-rail">
+        <div className="duo-info-card">
+          <div className="duo-info-title">Desbloqueie as ligas!</div>
+          <div className="duo-info-row">
+            <Shield size={28} />
+            <p>Complete mais 10 licoes pra comecar a competir.</p>
+          </div>
+        </div>
+
+        <div className="duo-info-card duo-onboarding-card">
+          <div className="duo-info-head">
+            <span>Onboarding pedagogico</span>
+            <button type="button" onClick={() => setShowOnboarding(true)}>INICIO</button>
+          </div>
+          <div className="duo-onboarding-summary">
+            <span>
+              <ClipboardCheck size={14} />
+              Nivel: {onboardingState.estimated_level || "A1"}
+            </span>
+            <span>
+              <CalendarDays size={14} />
+              Meta: {onboardingState.goal || "conversacao"}
+            </span>
+          </div>
+          <p className="duo-onboarding-copy">
+            {onboardingState.completed
+              ? "Trilha personalizada pronta. Refaca quando seu objetivo mudar."
+              : "Configure seu objetivo e perfil para montar sua trilha personalizada."}
+          </p>
+          <div className="duo-onboarding-track">
+            {(onboardingState.personalized_track || []).slice(0, 4).map((moduleKey) => (
+              <span key={moduleKey}>{moduleKey}</span>
+            ))}
+          </div>
+        </div>
+
+        <div className="duo-info-card duo-report-card">
+          <div className="duo-info-head">
+            <span>Relatorios pedagogicos</span>
+            <button type="button">ADV</button>
+          </div>
+
+          <div className="duo-report-summary">
+            <span>
+              <BarChart3 size={14} />
+              Score: {lastPedagogicalReport?.global_score ?? adaptiveState.global_score ?? 0}
+            </span>
+            <span>
+              <Trophy size={14} />
+              Nivel: {lastPedagogicalReport?.level_estimate ?? onboardingState.estimated_level ?? "A1"}
+            </span>
+          </div>
+
+          <div className="duo-report-grid">
+            <article>
+              <strong>Forte</strong>
+              <p>{skillLabel(lastPedagogicalReport?.strongest_skill || adaptiveState.focus_skill || "grammar")}</p>
+            </article>
+            <article>
+              <strong>A melhorar</strong>
+              <p>{skillLabel(lastPedagogicalReport?.weakest_skill || adaptiveState.focus_skill || "grammar")}</p>
+            </article>
+            <article>
+              <strong>Retencao</strong>
+              <p>{lastPedagogicalReport?.retention_rate ?? retentionRate}%</p>
+            </article>
+            <article>
+              <strong>Consistencia</strong>
+              <p>{lastPedagogicalReport?.consistency_rate ?? 0}%</p>
+            </article>
+          </div>
+
+          <div className="duo-report-actions">
+            <button type="button" onClick={generatePedagogicalReport}>
+              <RefreshCw size={14} />
+              Gerar relatorio
+            </button>
+            <button type="button" className="is-secondary" onClick={exportPedagogicalReport} disabled={!lastPedagogicalReport}>
+              <FileDown size={14} />
+              Exportar JSON
+            </button>
+          </div>
+
+          <div className="duo-report-recos">
+            {(lastPedagogicalReport?.recommendations || []).slice(0, 2).map((item, index) => (
+              <p key={`${item}_${index}`}>• {item}</p>
+            ))}
+          </div>
+        </div>
+
+        <div className="duo-info-card duo-srs-card">
+          <div className="duo-info-head">
+            <span>Revisao espacada global</span>
+            <button type="button">SRS</button>
+          </div>
+
+          <div className="duo-srs-summary">
+            <span>Hoje: {srsState.completed_today} concluida(s)</span>
+            <span>Pendentes: {dueItems.length}</span>
+          </div>
+
+          <div className="duo-srs-kpi-grid">
+            <article>
+              <strong>{srsWeekStats.dueToday}</strong>
+              <span>Vencidas hoje</span>
+            </article>
+            <article>
+              <strong>{srsWeekStats.dueNext7}</strong>
+              <span>Proximas 7 dias</span>
+            </article>
+            <article>
+              <strong>{retentionRate}%</strong>
+              <span>Taxa de retencao</span>
+            </article>
+          </div>
+
+          <div className="duo-srs-week-line">
+            <div className="duo-srs-week-track">
+              <div className="duo-srs-week-fill" style={{ width: `${srsWeekStats.weekProgress}%` }} />
+            </div>
+            <span>
+              Janela semanal: {srsWeekStats.dueToday + srsWeekStats.dueNext7} / {Math.max(1, srsWeekStats.totalWindow)}
+            </span>
+          </div>
+
+          <div className="duo-progress-bar duo-srs-progress">
+            <div
+              className="duo-progress-fill"
+              style={{
+                width: `${Math.min(
+                  100,
+                  Math.round(
+                    (Number(srsState.completed_today || 0) /
+                      Math.max(
+                        1,
+                        Number(srsState.completed_today || 0) + Number(dueItems.length || 0)
+                      )) *
+                      100
+                  )
+                )}%`,
+              }}
+            />
+            <span>
+              {srsState.completed_today} /{" "}
+              {Number(srsState.completed_today || 0) + Number(dueItems.length || 0)}
+            </span>
+          </div>
+
+          <div className="duo-srs-list">
+            {dueItems.slice(0, 3).map((item) => (
+              <article key={item.id} className="duo-srs-item">
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.module}: {item.prompt}</p>
+                </div>
+                <button type="button" onClick={() => completeReview(item.id)}>
+                  <CheckCircle2 size={15} />
+                  Revisar
+                </button>
+              </article>
+            ))}
+            {dueItems.length === 0 ? (
+              <div className="duo-srs-empty">
+                <RotateCcw size={16} />
+                Revisoes do dia em dia.
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="duo-info-card duo-adaptive-card">
+          <div className="duo-info-head">
+            <span>Diagnostico adaptativo</span>
+            <button type="button">AUTO</button>
+          </div>
+
+          <div className="duo-adaptive-summary">
+            <span>
+              <Gauge size={14} />
+              Score: {adaptiveState.global_score}
+            </span>
+            <span>
+              <BrainCircuit size={14} />
+              Dificuldade: {difficultyLabel(adaptiveState.global_difficulty)}
+            </span>
+          </div>
+
+          <div className="duo-adaptive-focus">
+            <p>
+              Foco atual: <strong>{skillLabel(adaptiveState.focus_skill)}</strong>
+            </p>
+            <button
+              type="button"
+              onClick={() => setSelectedModuleKey(adaptiveState.recommended_module_key || "grammar")}
+            >
+              Aplicar ajuste
+            </button>
+          </div>
+
+          <div className="duo-adaptive-skills">
+            {(adaptiveState.skill_scores || []).map((item) => (
+              <article key={item.skill} className="duo-adaptive-skill-item">
+                <div className="duo-adaptive-skill-head">
+                  <strong>{skillLabel(item.skill)}</strong>
+                  <span>
+                    <TrendingUp size={13} />
+                    {item.score}
+                  </span>
+                </div>
+                <div className="duo-adaptive-track">
+                  <div className="duo-adaptive-fill" style={{ width: `${item.score}%` }} />
+                </div>
+                <em>
+                  {difficultyLabel(item.difficulty)} · erro {Math.round(Number(item.error_pressure || 0) * 100)}%
+                </em>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="duo-info-card duo-weekplan-card">
+          <div className="duo-info-head">
+            <span>Plano semanal automatico</span>
+            <button type="button">WEEK</button>
+          </div>
+
+          <div className="duo-weekplan-controls">
+            <label htmlFor="weekly-goal-select">Objetivo</label>
+            <select
+              id="weekly-goal-select"
+              value={weeklyPlanState.goal || "conversacao"}
+              onChange={(e) => updateWeeklyGoal(e.target.value)}
+            >
+              <option value="viagem">Viagem</option>
+              <option value="trabalho">Trabalho</option>
+              <option value="prova">Prova</option>
+              <option value="conversacao">Conversacao</option>
+            </select>
+            <button type="button" onClick={() => regenerateWeeklyPlan(weeklyPlanState.goal || "conversacao")}>
+              <RefreshCw size={14} />
+              Regenerar
+            </button>
+          </div>
+
+          <div className="duo-weekplan-meta">
+            <span>
+              <CalendarDays size={14} />
+              Semana: {weeklyPlanState.week_start || "-"}
+            </span>
+            <span>Foco: {goalLabel(weeklyPlanState.goal)}</span>
+          </div>
+
+          <div className="duo-weekplan-list">
+            {(weeklyPlanState.days || []).slice(0, 7).map((day) => (
+              <article key={`${day.day_index}_${day.task}`} className={`duo-weekplan-day ${day.status === "done" ? "is-done" : ""}`}>
+                <div>
+                  <strong>{day.day_name}</strong>
+                  <p>{day.task}</p>
+                  <em>{day.minutes} min · {day.module_key}</em>
+                </div>
+                <button type="button" onClick={() => toggleWeeklyDayDone(day.day_index)}>
+                  {day.status === "done" ? "feito" : "marcar"}
+                </button>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="duo-info-card duo-error-card">
+          <div className="duo-info-head">
+            <span>Caderno de erros</span>
+            <button type="button">ERROS</button>
+          </div>
+
+          <div className="duo-error-summary">
+            <span>
+              <TriangleAlert size={14} />
+              Padroes: {(errorNotebookState.patterns || []).length}
+            </span>
+            <span>
+              <NotebookPen size={14} />
+              Ocorrencias: {errorNotebookState.total_logged || 0}
+            </span>
+          </div>
+
+          <div className="duo-error-input-row">
+            <input
+              type="text"
+              value={manualErrorInput}
+              onChange={(e) => setManualErrorInput(e.target.value)}
+              placeholder="Anotar erro manual (ex.: preposicao com on/in)"
+            />
+            <button type="button" onClick={addManualErrorPattern}>
+              <Plus size={14} />
+              Add
+            </button>
+          </div>
+
+          <div className="duo-error-list">
+            {(errorNotebookState.patterns || []).slice(0, 4).map((pattern) => (
+              <article
+                key={pattern.id}
+                className={`duo-error-item ${pattern.status === "reviewed" ? "is-reviewed" : ""}`}
+              >
+                <div>
+                  <strong>{pattern.title}</strong>
+                  <p>{pattern.rule}</p>
+                  <em>
+                    {pattern.wrong_example} {"->"} {pattern.right_example}
+                  </em>
+                </div>
+                <button type="button" onClick={() => togglePatternReviewed(pattern.id)}>
+                  {pattern.status === "reviewed" ? "Reabrir" : "Revisado"}
+                </button>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="duo-info-card duo-retention-card">
+          <div className="duo-info-head">
+            <span>Retencao de longo prazo</span>
+            <button type="button">7/30</button>
+          </div>
+
+          <div className="duo-retention-summary">
+            <span>
+              <CalendarDays size={14} />
+              Hoje: {retentionDueItems.length} teste(s)
+            </span>
+            <span>
+              <Gauge size={14} />
+              Retencao: {retentionRate}%
+            </span>
+          </div>
+
+          <div className="duo-progress-bar duo-retention-progress">
+            <div
+              className="duo-progress-fill"
+              style={{ width: `${Math.min(100, Math.round((Number(retentionState.total_tests || 0) / retentionProgressMax) * 100))}%` }}
+            />
+            <span>
+              {retentionState.total_tests} / {retentionProgressMax}
+            </span>
+          </div>
+
+          <div className="duo-retention-list">
+            {retentionDueItems.slice(0, 3).map((item) => (
+              <article key={item.id} className="duo-retention-item">
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.module}: {item.prompt}</p>
+                  <em>Teste {item.scheduled_days} dias</em>
+                </div>
+                <div className="duo-retention-actions">
+                  <button type="button" onClick={() => runRetentionTest(item.id, true)}>
+                    <CheckCircle2 size={14} />
+                    Lembrei
+                  </button>
+                  <button type="button" className="is-fail" onClick={() => runRetentionTest(item.id, false)}>
+                    <RotateCcw size={14} />
+                    Reforcar
+                  </button>
+                </div>
+              </article>
+            ))}
+            {retentionDueItems.length === 0 ? (
+              <div className="duo-srs-empty">
+                <CheckCircle2 size={16} />
+                Sem testes pendentes hoje.
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="duo-info-card">
+          <div className="duo-info-head">
+            <span>Missoes do dia</span>
+            <button type="button">VER TODAS</button>
+          </div>
+          <div className="duo-mission-item">
+            <div className="duo-mission-title">Ganhe 10 XP</div>
+            <div className="duo-progress-bar">
+              <div className="duo-progress-fill" style={{ width: "20%" }} />
+              <span>2 / 10</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="duo-info-card">
+          <div className="duo-info-title">Crie um perfil pra salvar o seu progresso!</div>
+          <div className="duo-cta-stack">
+            <button type="button" className="duo-cta-primary">
+              <UserPlus size={18} />
+              CRIAR UM PERFIL
+            </button>
+            <button type="button" className="duo-cta-secondary">
+              <LogIn size={18} />
+              ENTRAR
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {showOnboarding ? (
+        <div className="duo-onboarding-overlay">
+          <section className="duo-onboarding-modal">
+            <div className="duo-onboarding-head">
+              <h2>Onboarding pedagogico inicial</h2>
+              <button type="button" onClick={() => setShowOnboarding(false)}>
+                Fechar
+              </button>
+            </div>
+
+            <div className="duo-onboarding-steps">
+              <span className={onboardingStep === 0 ? "is-active" : ""}>Teste rapido</span>
+              <span className={onboardingStep === 1 ? "is-active" : ""}>Meta</span>
+              <span className={onboardingStep === 2 ? "is-active" : ""}>Perfil</span>
+            </div>
+
+            {onboardingStep === 0 ? (
+              <div className="duo-onboarding-body">
+                {ONBOARDING_QUESTIONS.map((question) => (
+                  <article key={question.id} className="duo-onboarding-question">
+                    <strong>{question.prompt}</strong>
+                    <div className="duo-onboarding-options">
+                      {question.options.map((option, index) => (
+                        <button
+                          key={`${question.id}_${index}`}
+                          type="button"
+                          className={Number(onboardingAnswers[question.id]) === index ? "is-selected" : ""}
+                          onClick={() => answerOnboardingQuestion(question.id, index)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+                <div className="duo-onboarding-actions">
+                  <span>Score atual: {onboardingScore}%</span>
+                  <button
+                    type="button"
+                    onClick={() => setOnboardingStep(1)}
+                    disabled={Object.keys(onboardingAnswers).length < ONBOARDING_QUESTIONS.length}
+                  >
+                    Continuar
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {onboardingStep === 1 ? (
+              <div className="duo-onboarding-body">
+                <label htmlFor="onboarding-goal">Objetivo principal</label>
+                <select id="onboarding-goal" value={onboardingGoal} onChange={(e) => setOnboardingGoal(e.target.value)}>
+                  <option value="conversacao">Conversacao</option>
+                  <option value="viagem">Viagem</option>
+                  <option value="trabalho">Trabalho</option>
+                  <option value="prova">Prova</option>
+                </select>
+                <label htmlFor="onboarding-minutes">Meta diaria (minutos)</label>
+                <input
+                  id="onboarding-minutes"
+                  type="number"
+                  min={10}
+                  max={120}
+                  value={onboardingMinutes}
+                  onChange={(e) => setOnboardingMinutes(Number(e.target.value || 20))}
+                />
+                <div className="duo-onboarding-actions">
+                  <button type="button" onClick={() => setOnboardingStep(0)}>Voltar</button>
+                  <button type="button" onClick={() => setOnboardingStep(2)}>Continuar</button>
+                </div>
+              </div>
+            ) : null}
+
+            {onboardingStep === 2 ? (
+              <div className="duo-onboarding-body">
+                <label htmlFor="onboarding-profile">Perfil de aprendizagem</label>
+                <select
+                  id="onboarding-profile"
+                  value={onboardingProfile}
+                  onChange={(e) => setOnboardingProfile(e.target.value)}
+                >
+                  <option value="balanced">Balanced</option>
+                  <option value="visual">Visual</option>
+                  <option value="auditivo">Auditivo</option>
+                  <option value="pratico">Pratico</option>
+                </select>
+                <p>
+                  Nivel estimado: <strong>{estimatedLevelFromScore(onboardingScore)}</strong>
+                </p>
+                <p>
+                  Trilha sugerida:{" "}
+                  <strong>{buildPersonalizedTrack(onboardingGoal, onboardingProfile).join(" -> ")}</strong>
+                </p>
+                <div className="duo-onboarding-actions">
+                  <button type="button" onClick={() => setOnboardingStep(1)}>Voltar</button>
+                  <button type="button" onClick={saveOnboarding}>Finalizar onboarding</button>
+                </div>
+              </div>
+            ) : null}
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }
+
+
+
+
+
+
+
+

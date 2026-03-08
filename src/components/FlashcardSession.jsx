@@ -1,90 +1,226 @@
-import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Volume2 } from "lucide-react";
 
-function FlashcardSession({ deck, deckName, onSessionComplete, color }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [answers, setAnswers] = useState([]);
+const RATINGS = [
+  { key: "easy", label: "Easy" },
+  { key: "good", label: "Good" },
+  { key: "hard", label: "Hard" },
+  { key: "again", label: "Again" },
+];
 
-  // Usamos useMemo para embaralhar o deck apenas uma vez
-  const shuffledDeck = useMemo(() => deck.sort(() => Math.random() - 0.5), [deck]);
-  const currentCard = shuffledDeck[currentIndex];
-
-  const handleRating = (rating) => {
-    const newAnswers = [...answers, { cardId: currentCard.id, rating }];
-    setAnswers(newAnswers);
-
-    if (currentIndex < shuffledDeck.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setIsFlipped(false);
-    } else {
-      onSessionComplete(newAnswers); // Sessão concluída
-    }
-  };
-
-  const generateListening = async (theme, example) => {
-    const response = await fetch("http://localhost:3001/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme, example })
-    });
-    const data = await response.json();
-
-    const generatedText = data?.[0]?.generated_text || "No response";
-    console.log(generatedText);
-  };
-
-  const progress = ((currentIndex + 1) / shuffledDeck.length) * 100;
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      {/* Barra de Progresso */}
-      <div className="w-full max-w-2xl mb-4">
-        <div className="bg-gray-200 rounded-full h-2.5">
-          <div className="bg-[#ed5215] h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
-        </div>
-        <p className="text-center font-bold mt-2 text-gray-600">{currentIndex + 1} / {shuffledDeck.length}</p>
-      </div>
-
-      <motion.div
-        className="w-full max-w-2xl h-80 rounded-2xl shadow-xl cursor-pointer text-center flex flex-col justify-center items-center p-6"
-        onClick={() => setIsFlipped(!isFlipped)}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.5 }}
-        style={{ transformStyle: 'preserve-3d', backgroundColor: isFlipped ? color : color }}
-      >
-        {/* FACE FRONTAL (Inglês) */}
-        <motion.div
-          style={{ display: isFlipped ? 'none' : 'inline-block' }}
-          className="absolute inset-0 flex flex-col justify-center items-center p-6"
-        >
-          <p className="text-gray-500 text-sm mb-2">{currentCard.topic}</p>
-          <p className="text-3xl font-bold text-gray-800">{currentCard.front}</p>
-        </motion.div>
-
-        {/* FACE TRASEIRA (Português) - PRECISA ROTACIONAR PARA MOSTRAR */}
-        <motion.div
-          // Aplicamos a rotação inicial de 180 graus (para que comece virada para trás)
-          // Usamos o 'isFlipped' para controlar a rotação final.
-          style={{ display: isFlipped ? 'inline-block' : 'none', transform: `rotateY(${isFlipped ? 180 : 0}deg)` }}
-          className="absolute inset-0 flex justify-center items-center p-6"
-        >
-          <p className="text-3xl font-bold text-green-700">{currentCard.back}</p>
-        </motion.div>
-      </motion.div>
-
-      {/* Botões de Dificuldade (SRS) */}
-      {isFlipped && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 w-full max-w-2xl">
-          <button onClick={() => handleRating('easy')} className="p-4 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600">Easy</button>
-          <button onClick={() => handleRating('medium')} className="p-4 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600">Medium</button>
-          <button onClick={() => handleRating('hard')} className="p-4 bg-orange-500 text-white font-bold rounded-lg shadow-md hover:bg-orange-600">Hard</button>
-          <button onClick={() => handleRating('too_hard')} className="p-4 bg-red-500 text-white font-bold rounded-lg shadow-md hover:bg-red-600">Repeat</button>
-          <button onClick={() => generateListening(currentCard.topic, currentCard.front)} className="p-4 bg-red-500 text-white font-bold rounded-lg shadow-md hover:bg-red-600">Generate listening</button>
-        </motion.div>
-      )}
-    </div>
-  );
+function speakText(text, lang = "en-US", rate = 1) {
+  if (!window.speechSynthesis) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = rate;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
 }
 
-export default FlashcardSession;
+export default function FlashcardSession({
+  deck,
+  deckId = "A1",
+  deckName,
+  onSessionComplete,
+  onProgress,
+  onExit,
+  initialSession,
+  color = "#096105",
+}) {
+  const [currentIndex, setCurrentIndex] = useState(initialSession?.current_index ?? 0);
+  const [isFlipped, setIsFlipped] = useState(Boolean(initialSession?.is_flipped));
+  const [answers, setAnswers] = useState(initialSession?.answers || []);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [sourceLanguage, setSourceLanguage] = useState("pt-BR");
+  const [learningLanguage, setLearningLanguage] = useState("en-US");
+
+  const currentCard = deck[currentIndex];
+  const total = deck.length || 1;
+  const progress = ((currentIndex + 1) / total) * 100;
+
+  useEffect(() => {
+    onProgress?.({
+      deck_id: initialSession?.deck_id || deckId,
+      card_order: deck.map((c) => c.id),
+      current_index: currentIndex,
+      is_flipped: isFlipped,
+      answers,
+      completed: false,
+      updated_at: new Date().toISOString(),
+    });
+  }, [answers, currentIndex, deck, deckId, initialSession?.deck_id, isFlipped, onProgress]);
+
+  useEffect(() => {
+    if (!window.speechSynthesis) return undefined;
+    window.speechSynthesis.cancel();
+    return () => window.speechSynthesis.cancel();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/progress");
+        if (!res.ok) return;
+        const progress = await res.json();
+        if (!mounted) return;
+        setSourceLanguage(progress?.languages?.source_language || "pt-BR");
+        setLearningLanguage(progress?.languages?.learning_language || "en-US");
+      } catch {
+        // fallback defaults
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Autoplay: sempre que iniciar a sessao ou avancar para o proximo card, fala a frente em ingles.
+  useEffect(() => {
+    if (!currentCard?.front) return;
+    const timer = window.setTimeout(() => {
+      speakText(currentCard.front, learningLanguage, playbackRate);
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [currentIndex, currentCard?.front, learningLanguage, playbackRate]);
+
+  const summary = useMemo(
+    () =>
+      answers.reduce((acc, answer) => {
+        acc[answer.rating] = (acc[answer.rating] || 0) + 1;
+        return acc;
+      }, {}),
+    [answers]
+  );
+
+  const handleRate = (rating) => {
+    const nextAnswers = [...answers, { cardId: currentCard.id, rating }];
+    if (currentIndex >= total - 1) {
+      onSessionComplete({
+        answers: nextAnswers,
+        total_cards: total,
+        summary: {
+          easy: summary.easy || 0,
+          good: summary.good || 0,
+          hard: summary.hard || 0,
+          again: summary.again || 0,
+          [rating]: (summary[rating] || 0) + 1,
+        },
+      });
+      return;
+    }
+    setAnswers(nextAnswers);
+    setCurrentIndex((prev) => prev + 1);
+    setIsFlipped(false);
+  };
+
+  const toggleSpeed = () => {
+    const next = playbackRate >= 1.5 ? 0.75 : Number((playbackRate + 0.25).toFixed(2));
+    setPlaybackRate(next);
+    const text = isFlipped ? currentCard?.back : currentCard?.front;
+    const lang = isFlipped ? sourceLanguage : learningLanguage;
+    if (text) speakText(text, lang, next);
+  };
+
+  if (!currentCard) return null;
+
+  return (
+    <section
+      className="flash-session-shell"
+      style={{
+        "--flash-theme": color,
+        "--flash-theme-shadow": "color-mix(in srgb, var(--flash-theme) 68%, #000 32%)",
+      }}
+    >
+      <header className="flash-session-topbar">
+        <button type="button" className="duo-back-btn" onClick={onExit}>
+          <ArrowLeft size={18} />
+          Voltar
+        </button>
+        <h1>{deckName}</h1>
+        <button type="button" className="duo-back-btn" onClick={onExit}>
+          Encerrar
+        </button>
+      </header>
+
+      <div className="flash-session-progress-wrap">
+        <span>{Math.round(progress)}%</span>
+        <div className="flash-session-progress">
+          <div className="flash-session-progress-fill" style={{ width: `${progress}%` }} />
+        </div>
+        <span>
+          {currentIndex + 1}/{total}
+        </span>
+      </div>
+
+      <div className="flash-card-stage">
+        <button
+          type="button"
+          className={`flash-card-3d ${isFlipped ? "is-flipped" : ""}`}
+          onClick={() => setIsFlipped((prev) => !prev)}
+        >
+          <div className="flash-card-face flash-card-front">
+            <div className="flash-card-face-kicker">Front</div>
+            <div className="flash-card-main">{currentCard.front}</div>
+            <div className="flash-card-controls">
+              <button
+                type="button"
+                className="flash-icon-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  speakText(currentCard.front, learningLanguage, playbackRate);
+                }}
+                aria-label="Ouvir frase"
+              >
+                <Volume2 size={22} />
+              </button>
+              <button
+                type="button"
+                className="flash-speed-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSpeed();
+                }}
+              >
+                {playbackRate.toFixed(2)}x
+              </button>
+            </div>
+          </div>
+
+          <div className="flash-card-face flash-card-back">
+            <div className="flash-card-face-kicker">Back</div>
+            <div className="flash-card-main">{currentCard.back}</div>
+            <div className="flash-card-controls">
+              <button
+                type="button"
+                className="flash-icon-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  speakText(currentCard.back, sourceLanguage, playbackRate);
+                }}
+                aria-label="Ouvir traducao"
+              >
+                <Volume2 size={22} />
+              </button>
+              <button type="button" className="flash-speed-btn">
+                {playbackRate.toFixed(2)}x
+              </button>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {isFlipped ? (
+        <div className="flash-rate-row">
+          {RATINGS.map((rating) => (
+            <button key={rating.key} type="button" className="flash-rate-btn" onClick={() => handleRate(rating.key)}>
+              {rating.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flash-tap-hint">Toque no card para virar</div>
+      )}
+    </section>
+  );
+}

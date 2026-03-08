@@ -1,178 +1,228 @@
-tsx
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import {
-  Sun,
-  Moon,
-  BookOpen,
-  Play,
-  Pause,
-  User,
-  Search,
-  X,
-} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Volume2 } from "lucide-react";
 
-function ImmersionDashboard() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [search, setSearch] = useState("");
-  const [activeLesson, setActiveLesson] = useState<string | null>(null);
-  const [seconds, setSeconds] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const lessons = useMemo(
-    () => [
-      { id: "1", title: "Daily Conversation", duration: 15 },
-      { id: "2", title: "Business English", duration: 20 },
-      { id: "3", title: "Travel Phrases", duration: 10 },
+const IMMERSION_THEMES = [
+  {
+    id: "im1",
+    title: "Verb To Be in Real Context",
+    introduction:
+      "The verb 'to be' is one of the foundations of English. It appears in introductions, descriptions, and daily interactions.",
+    context:
+      "In real conversations, 'to be' helps you identify people, describe states, and talk about location. You will hear it in almost every basic dialogue.",
+    examples: [
+      "I am ready for the class.",
+      "She is my colleague.",
+      "They are at the station.",
     ],
-    []
-  );
+    dialogue: [
+      { speaker: "A", text: "Hi, I am Daniel. Are you new here?" },
+      { speaker: "B", text: "Yes, I am. I am from Brazil." },
+      { speaker: "A", text: "Great! We are in the same group." },
+    ],
+  },
+  {
+    id: "im2",
+    title: "Present Simple for Routine",
+    introduction:
+      "Present simple is used for habits, routines, and facts. It gives structure to everyday communication.",
+    context:
+      "When discussing work, study, and schedules, present simple sounds natural and direct. It is essential for speaking clearly.",
+    examples: [
+      "I work from home three days a week.",
+      "He studies English after dinner.",
+      "The train leaves at 8 AM.",
+    ],
+    dialogue: [
+      { speaker: "A", text: "What time do you start work?" },
+      { speaker: "B", text: "I start at nine and finish at six." },
+      { speaker: "A", text: "Do you study English every day?" },
+      { speaker: "B", text: "Yes, I do. I practice for thirty minutes." },
+    ],
+  },
+  {
+    id: "im3",
+    title: "Making Polite Requests",
+    introduction:
+      "Polite requests improve communication quality and social connection. They are essential in professional and personal settings.",
+    context:
+      "Expressions like 'Could you...' and 'Would you mind...' help you sound respectful and cooperative in English.",
+    examples: [
+      "Could you send me the file, please?",
+      "Would you mind repeating that?",
+      "Can you help me with this form?",
+    ],
+    dialogue: [
+      { speaker: "A", text: "Could you help me find this address?" },
+      { speaker: "B", text: "Sure, I can. It is two blocks from here." },
+      { speaker: "A", text: "Thank you. Would you mind writing it down?" },
+      { speaker: "B", text: "No problem. Here you go." },
+    ],
+  },
+];
 
-  // Apply dark mode class to <html>
-  useEffect(() => {
-    const root = document.documentElement;
-    darkMode ? root.classList.add("dark") : root.classList.remove("dark");
-  }, [darkMode]);
-
-  // Timer: start when a lesson is active, reset on stop
-  useEffect(() => {
-    if (activeLesson) {
-      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      setSeconds(0);
+function ensureImmersion(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.immersion) {
+    data.modules.immersion = {
+      completed_themes: [],
+      last_theme_id: null,
+      total_completed: 0,
     };
-  }, [activeLesson]);
+  }
+  return data;
+}
 
-  const formatTime = useCallback((sec: number) => {
-    const m = String(Math.floor(sec / 60)).padStart(2, "0");
-    const s = String(sec % 60).padStart(2, "0");
-    return `${m}:${s}`;
+async function readProgress() {
+  const res = await fetch("/api/progress", { cache: "no-store" });
+  if (!res.ok) throw new Error("Falha ao ler progresso");
+  const parsed = await res.json();
+  return ensureImmersion(parsed);
+}
+
+async function writeProgress(nextProgress) {
+  const res = await fetch("/api/progress", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(nextProgress),
+  });
+  if (!res.ok) throw new Error("Falha ao salvar progresso");
+  const parsed = await res.json();
+  return ensureImmersion(parsed);
+}
+
+function speak(text, lang = "en-US") {
+  if (!window.speechSynthesis || !text) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
+}
+
+export default function Immersion({ setCurrentView, color = "#b00245" }) {
+  const [selectedThemeId, setSelectedThemeId] = useState(IMMERSION_THEMES[0].id);
+  const [completed, setCompleted] = useState(new Set());
+  const [learningLanguage, setLearningLanguage] = useState("en-US");
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const progress = await readProgress();
+        if (!mounted) return;
+        const block = progress.modules.immersion;
+        setCompleted(new Set(block.completed_themes || []));
+        setLearningLanguage(progress?.languages?.learning_language || "en-US");
+      } catch {
+        if (!mounted) return;
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const filteredLessons = useMemo(
-    () =>
-      lessons.filter((l) =>
-        l.title.toLowerCase().includes(search.toLowerCase())
-      ),
-    [lessons, search]
+  const selectedTheme = useMemo(
+    () => IMMERSION_THEMES.find((t) => t.id === selectedThemeId) || IMMERSION_THEMES[0],
+    [selectedThemeId]
   );
 
-  const handleStart = useCallback((id: string) => setActiveLesson(id), []);
-  const handleStop = useCallback(() => setActiveLesson(null), []);
-  const toggleDark = useCallback(() => setDarkMode((d) => !d), []);
+  const finishTheme = async () => {
+    const nextCompleted = new Set(completed);
+    nextCompleted.add(selectedTheme.id);
+    setCompleted(nextCompleted);
+
+    try {
+      const progress = await readProgress();
+      const existing = new Set(progress.modules.immersion.completed_themes || []);
+      existing.add(selectedTheme.id);
+      progress.modules.immersion = {
+        completed_themes: [...existing],
+        last_theme_id: selectedTheme.id,
+        total_completed: existing.size,
+      };
+      await writeProgress(progress);
+    } catch {
+      // no-op
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <BookOpen className="w-6 h-6" />
-          Immersion
-        </h1>
-
-        <div className="flex items-center gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar lições..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-8 py-1 rounded bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Buscar lições"
-            />
-            {search && (
-              <X
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 cursor-pointer text-gray-500 dark:text-gray-400"
-                onClick={() => setSearch("")}
-                aria-label="Limpar busca"
-              />
-            )}
-          </div>
-
-          {/* Dark mode toggle */}
-          <button
-            onClick={toggleDark}
-            className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-            aria-label="Alternar modo escuro"
-          >
-            {darkMode ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
-
-          {/* User profile */}
-          <button
-            className="flex items-center gap-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-            aria-label="Perfil do usuário"
-          >
-            <User className="w-5 h-5" />
-            <span className="hidden sm:inline">Perfil</span>
-          </button>
+    <section className="immersion-shell" style={{ "--immersion-theme": color }}>
+      <header className="immersion-head">
+        <button type="button" className="duo-back-btn" onClick={() => setCurrentView("initial")}>
+          <ArrowLeft size={18} />
+          Voltar
+        </button>
+        <div>
+          <div className="immersion-kicker">IMMERSION BOOK</div>
+          <h1>Immersion</h1>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="p-6">
-        {/* Timer bar */}
-        {activeLesson && (
-          <section className="mb-8 flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-            <div>
-              <h2 className="text-xl font-semibold">
-                {lessons.find((l) => l.id === activeLesson)?.title}
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Tempo decorrido: {formatTime(seconds)}
-              </p>
-            </div>
+      <div className="immersion-layout">
+        <aside className="immersion-theme-list">
+          {IMMERSION_THEMES.map((theme, idx) => (
             <button
-              onClick={handleStop}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition"
-              aria-label="Parar lição"
+              key={theme.id}
+              type="button"
+              className={`immersion-theme-btn ${idx % 2 ? "offset-right" : "offset-left"} ${
+                selectedThemeId === theme.id ? "is-active" : ""
+              } ${completed.has(theme.id) ? "is-done" : ""}`}
+              onClick={() => setSelectedThemeId(theme.id)}
             >
-              <Pause className="w-4 h-4" />
-              Parar
+              <span>{theme.title}</span>
+              <em>{completed.has(theme.id) ? "Concluído" : "Em estudo"}</em>
             </button>
-          </section>
-        )}
-
-        {/* Lessons grid */}
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredLessons.map((lesson) => (
-            <article
-              key={lesson.id}
-              className="flex flex-col justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition"
-            >
-              <div>
-                <h3 className="text-lg font-medium">{lesson.title}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Duração: {lesson.duration} min
-                </p>
-              </div>
-              <button
-                onClick={() => handleStart(lesson.id)}
-                className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded transition"
-                aria-label={`Iniciar lição ${lesson.title}`}
-              >
-                <Play className="w-4 h-4" />
-                Iniciar
-              </button>
-            </article>
           ))}
+        </aside>
 
-          {filteredLessons.length === 0 && (
-            <p className="col-span-full text-center text-gray-600 dark:text-gray-400">
-              Nenhuma lição encontrada.
-            </p>
-          )}
-        </section>
-      </main>
-    </div>
+        <article className="immersion-book-card">
+          <h2>{selectedTheme.title}</h2>
+
+          <section>
+            <h3>Introdução</h3>
+            <p>{selectedTheme.introduction}</p>
+          </section>
+
+          <section>
+            <h3>Contexto</h3>
+            <p>{selectedTheme.context}</p>
+          </section>
+
+          <section>
+            <h3>Exemplos</h3>
+            <ul>
+              {selectedTheme.examples.map((ex) => (
+                <li key={ex}>{ex}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="immersion-dialogue">
+            <h3>Mini diálogo</h3>
+            <ul>
+              {selectedTheme.dialogue.map((line, idx) => (
+                <li key={`${line.speaker}_${idx}`}>
+                  <strong>{line.speaker}:</strong> {line.text}
+                  <button
+                    type="button"
+                    className="immersion-audio-btn"
+                    onClick={() => speak(line.text, learningLanguage)}
+                  >
+                    <Volume2 size={14} />
+                    Ouvir
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <button type="button" className="immersion-finish-btn" onClick={finishTheme}>
+            Finalizar tema
+          </button>
+        </article>
+      </div>
+    </section>
   );
 }
-
-export default ImmersionDashboard;

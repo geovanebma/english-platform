@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Varela Round", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -26,8 +26,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -43,7 +41,6 @@ button {
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  font-family: inherit;
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
@@ -74,8 +71,8 @@ button:focus-visible {
 
 /* Aplicação Global da Fonte e Reset de Estilo */
 body {
-    /* Define a fonte em todo o projeto, com fallback (similar à din-round) */
-    font-family: 'Varela Round', 'din-round', sans-serif;
+    /* Define a fonte em todo o projeto */
+    font-family: "Varela Round", sans-serif;
     /* Estilo base de um SaaS limpo */
     background-color: #f7f7f7; 
     color: #333;

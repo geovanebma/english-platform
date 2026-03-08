@@ -1,31 +1,50 @@
-import React from 'react';
+import React from "react";
+import { ArrowLeft } from "lucide-react";
 
-function FlashcardsSessionResults({ results, deckName, onRestart }) {
-  const summary = results.reduce((acc, answer) => {
-    acc[answer.rating] = (acc[answer.rating] || 0) + 1;
-    return acc;
-  }, {});
+export default function FlashcardsSessionResults({ results, deckName, onBack, color = "#096105" }) {
+  const summary = results?.summary || {};
+  const totalCards = results?.total_cards || 0;
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6 text-center">
-      <h1 className="text-4xl font-extrabold text-gray-800 mb-4">Sessão Concluída!</h1>
-      <p className="text-xl text-gray-600 mb-8">Ótimo trabalho na revisão do deck <strong>{deckName}</strong>.</p>
-      
-      <div className="bg-white p-8 rounded-xl shadow-lg border w-full max-w-md mx-auto mb-10">
-        <h2 className="text-2xl font-bold mb-6">Seu Desempenho:</h2>
-        <div className="space-y-3 text-left">
-          <p className="text-lg font-medium"><span className="text-green-500 font-bold">Fácil:</span> {summary.easy || 0} cartões</p>
-          <p className="text-lg font-medium"><span className="text-blue-500 font-bold">Médio:</span> {summary.medium || 0} cartões</p>
-          <p className="text-lg font-medium"><span className="text-orange-500 font-bold">Difícil:</span> {summary.hard || 0} cartões</p>
-          <p className="text-lg font-medium"><span className="text-red-500 font-bold">Repetir:</span> {summary.too_hard || 0} cartões</p>
-        </div>
+    <section
+      className="flash-results-shell"
+      style={{
+        "--flash-theme": color,
+        "--flash-theme-shadow": "color-mix(in srgb, var(--flash-theme) 68%, #000 32%)",
+      }}
+    >
+      <div className="flash-results-head">
+        <h1>Sessao concluida!</h1>
+        <p>Deck: {deckName}</p>
       </div>
 
-      <button onClick={onRestart} className="bg-[#ed5215] text-white px-8 py-3 rounded-lg font-bold text-lg hover:bg-orange-600 transition-colors shadow-md">
-        Voltar ao Menu
+      <div className="flash-results-grid">
+        <article className="flash-results-card">
+          <h3>Easy</h3>
+          <strong>{summary.easy || 0}</strong>
+        </article>
+        <article className="flash-results-card">
+          <h3>Good</h3>
+          <strong>{summary.good || 0}</strong>
+        </article>
+        <article className="flash-results-card">
+          <h3>Hard</h3>
+          <strong>{summary.hard || 0}</strong>
+        </article>
+        <article className="flash-results-card">
+          <h3>Again</h3>
+          <strong>{summary.again || 0}</strong>
+        </article>
+      </div>
+
+      <div className="flash-results-footer">
+        <div className="flash-results-total">Cartoes revisados: {totalCards}</div>
+      </div>
+
+      <button type="button" className="flash-results-back" onClick={onBack}>
+        <ArrowLeft size={18} />
+        Voltar
       </button>
-    </div>
+    </section>
   );
 }
-
-export default FlashcardsSessionResults;
