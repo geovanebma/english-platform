@@ -1,37 +1,71 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+
 import "../initial.css";
+
 import {
+
   BookOpen,
+
   CreditCard,
+
   Headphones,
+
   MessageSquare,
+
   BookMarked,
+
   Library,
+
   GraduationCap,
+
   FileText,
+
   Volume2,
+
   Pencil,
+
   Gamepad2,
+
   Lightbulb,
+
   Waves,
+
   Users,
+
   Languages,
+
   ClipboardCheck,
+
   User,
+
   UserRound,
+
   Music,
+
   Shield,
+
   Flame,
+
   Gem,
+
   Heart,
+
   ChevronRight,
+
   UserPlus,
+
   LogIn,
+
   RotateCcw,
+
   CheckCircle2,
+
   BrainCircuit,
+
   Gauge,
+
   TrendingUp,
+
   CalendarDays,
   RefreshCw,
   NotebookPen,
@@ -42,47 +76,90 @@ import {
   Trophy,
 } from "lucide-react";
 import Grammar from "./Grammar";
+
 import Flashcards from "./Flashcards";
+
 import MyVocabulary from "./MyVocabulary";
+
 import Dictionary from "./Dictionary";
+
 import Courses from "./Courses";
+
 import SpeakWithAI from "./SpeakWithAI";
+
 import ReadingComprehension from "./ReadingComprehension";
+
 import Pronounce from "./Pronounce";
+
 import Writing from "./Writing";
+
 import Games from "./Games";
+
 import Modernmethodologies from "./Modernmethodologies";
+
 import Listening from "./Listening";
+
 import Immersion from "./Immersion";
+
 import SpeakWithnatives from "./SpeakWithnatives";
+
 import TranslationPractice from "./TranslationPractice";
+
 import TestYourEnglishLevel from "./TestYourEnglishLevel";
+
 import Community from "./Community";
+
 import MusicModule from "./Music";
+
 import ProfileModule from "./Profile";
 
+
+
 function hexToRgb(hex) {
+
   const cleaned = (hex || "#58cc02").replace("#", "");
+
   const normalized =
+
     cleaned.length === 3
+
       ? cleaned
+
           .split("")
+
           .map((c) => c + c)
+
           .join("")
+
       : cleaned;
+
   const int = Number.parseInt(normalized, 16);
+
   return {
+
     r: (int >> 16) & 255,
+
     g: (int >> 8) & 255,
+
     b: int & 255,
+
   };
+
 }
 
+
+
 function darken(hex, amount = 20) {
+
   const { r, g, b } = hexToRgb(hex);
+
   const next = [r, g, b].map((v) => Math.max(0, v - amount));
+
   return `rgb(${next[0]}, ${next[1]}, ${next[2]})`;
+
 }
+
+
 
 function alpha(hex, a) {
   const { r, g, b } = hexToRgb(hex);
@@ -131,6 +208,8 @@ function getPersonByColor(hex) {
   return "oscar";
 }
 
+
+
 const MODULES = [
   { key: "grammar", label: "Grammar", color: "#58cc02", icon: BookOpen },
   { key: "flashcards", label: "Flashcards", color: "#FEB023", icon: CreditCard },
@@ -152,6 +231,16 @@ const MODULES = [
   { key: "music", label: "Music", color: "#DB8E73", icon: Music },
   { key: "community", label: "Community", color: "#3C3E3B", icon: User },
 ];
+
+const GRAMMAR_LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"];
+const GRAMMAR_LEVEL_TOTALS = {
+  A1: 10,
+  A2: 6,
+  B1: 6,
+  B2: 6,
+  C1: 6,
+  C2: 6,
+};
 
 const ONBOARDING_QUESTIONS = [
   {
@@ -203,199 +292,392 @@ const ONBOARDING_QUESTIONS = [
   },
 ];
 
+
 function todayIso() {
+
   return new Date().toISOString().slice(0, 10);
+
 }
+
+
 
 function addDays(dateIso, days) {
+
   const date = new Date(`${dateIso}T00:00:00`);
+
   date.setDate(date.getDate() + days);
+
   return date.toISOString().slice(0, 10);
+
 }
+
+
 
 function ensureSrs(progress) {
+
   const data = progress || {};
+
   if (!data.modules) data.modules = {};
+
   if (!data.modules.srs_global) {
+
     data.modules.srs_global = {
+
       queue: [],
+
       completed_today: 0,
+
       total_reviews: 0,
+
       last_generated_date: null,
+
       next_item_id: 1,
+
     };
+
   }
+
   if (!Array.isArray(data.modules.srs_global.queue)) data.modules.srs_global.queue = [];
+
   return data;
+
 }
+
+
 
 function clamp(value, min = 0, max = 100) {
+
   return Math.max(min, Math.min(max, value));
+
 }
+
+
 
 function getDifficulty(score, errorPressure) {
+
   let level = "normal";
+
   if (score < 35) level = "basic";
+
   if (score >= 70) level = "advanced";
+
   if (errorPressure > 0.55 && level === "advanced") level = "normal";
+
   if (errorPressure > 0.65 && level === "normal") level = "basic";
+
   return level;
+
 }
+
+
 
 function scoreTrend(current, previous) {
+
   const prev = Number(previous || 0);
+
   const now = Number(current || 0);
+
   const diff = now - prev;
+
   if (diff > 4) return "up";
+
   if (diff < -4) return "down";
+
   return "flat";
+
 }
+
+
 
 function computeAdaptiveDiagnostics(progress) {
+
   const modules = progress?.modules || {};
+
   const previous = modules.adaptive_diagnostics || {};
+
   const previousMap = Object.fromEntries(
+
     (previous.skill_scores || []).map((item) => [item.skill, Number(item.score || 0)])
+
   );
+
+
 
   const grammarCompleted = Number((modules.grammar?.completed_units || []).length);
+
   const writingBest = Number(modules.writing?.best_score || 0);
+
   const writingAttempts = Number(modules.writing?.attempts || 0);
+
   const modernMetrics = modules.modern_methodologies?.metrics || {};
+
   const translationAttempts = Number(modules.translation_practice?.total_attempts || 0);
+
   const translationWrong = Number(modules.translation_practice?.wrong_count || 0);
+
   const translationErrorRate = translationAttempts > 0 ? translationWrong / translationAttempts : 0;
 
+
+
   const learnedWords = Number(
+
     modules.my_vocabulary?.learned_words || progress?.my_vocabulary?.learned_words || 0
+
   );
+
   const flashLast = modules.flashcards?.last_results || null;
+
   const flashAccuracy = flashLast?.total_cards
+
     ? Number(flashLast.correct_count || 0) / Number(flashLast.total_cards || 1)
+
     : 0.5;
 
+
+
   const readingCompleted = Number((modules.reading_comprehension?.completed_passages || []).length);
+
   const readingBestScores = modules.reading_comprehension?.best_scores || {};
+
   const readingBestValues = Object.values(readingBestScores).map((value) => Number(value || 0));
+
   const readingBestAvg = readingBestValues.length
+
     ? readingBestValues.reduce((sum, value) => sum + value, 0) / readingBestValues.length
+
     : 0;
 
+
+
   const listeningCompleted = Number(modules.listening?.total_completed || 0);
+
   const pronounceAccuracy = Number(modules.pronounce?.last_accuracy || 0);
+
   const pronounceSessions = Number(modules.pronounce?.sessions_completed || 0);
 
+
+
   const aiMessages = Number(modules.speak_ai?.total_messages || 0);
+
   const nativeSessions = Number(modules.speak_with_natives?.total_sessions || 0);
 
+
+
   const grammarScore = clamp(
+
     22 +
+
       grammarCompleted * 12 +
+
       Number(modernMetrics.grammar || 0) * 0.5 +
+
       writingBest * 0.15 -
+
       translationErrorRate * 35
+
   );
+
   const vocabularyScore = clamp(
+
     18 + learnedWords * 0.55 + flashAccuracy * 24 + Number(modernMetrics.vocabulary || 0) * 0.4
+
   );
+
   const readingScore = clamp(20 + readingCompleted * 11 + readingBestAvg * 0.45);
+
   const listeningScore = clamp(
+
     20 + listeningCompleted * 10 + pronounceAccuracy * 0.5 + pronounceSessions * 3
+
   );
+
   const speakingScore = clamp(
+
     16 + aiMessages * 0.9 + nativeSessions * 12 + pronounceSessions * 4 + Number(modernMetrics.context || 0) * 0.25
+
   );
+
   const writingScore = clamp(
+
     18 +
+
       writingBest * 0.55 +
+
       writingAttempts * 2 +
+
       Number(modernMetrics.clarity || 0) * 0.35 -
+
       translationErrorRate * 28
+
   );
+
+
 
   const skillScores = [
+
     {
+
       skill: "grammar",
+
       score: Math.round(grammarScore),
+
       error_pressure: Number((translationErrorRate * 0.7).toFixed(2)),
+
     },
+
     {
+
       skill: "vocabulary",
+
       score: Math.round(vocabularyScore),
+
       error_pressure: Number((Math.max(0, 0.45 - flashAccuracy / 2)).toFixed(2)),
+
     },
+
     {
+
       skill: "reading",
+
       score: Math.round(readingScore),
+
       error_pressure: Number((Math.max(0, 0.5 - readingBestAvg / 200)).toFixed(2)),
+
     },
+
     {
+
       skill: "listening",
+
       score: Math.round(listeningScore),
+
       error_pressure: Number((Math.max(0, 0.55 - pronounceAccuracy / 150)).toFixed(2)),
+
     },
+
     {
+
       skill: "speaking",
+
       score: Math.round(speakingScore),
+
       error_pressure: Number((Math.max(0, 0.5 - aiMessages / 40)).toFixed(2)),
+
     },
+
     {
+
       skill: "writing",
+
       score: Math.round(writingScore),
+
       error_pressure: Number((Math.max(0, 0.6 - writingBest / 170)).toFixed(2)),
+
     },
+
   ].map((item) => ({
+
     ...item,
+
     difficulty: getDifficulty(item.score, item.error_pressure),
+
     trend: scoreTrend(item.score, previousMap[item.skill]),
+
   }));
 
+
+
   const globalScore = Math.round(
+
     skillScores.reduce((sum, item) => sum + item.score, 0) / Math.max(1, skillScores.length)
+
   );
 
+
+
   const weakest = [...skillScores].sort((a, b) => a.score - b.score)[0];
+
   const skillToModule = {
+
     grammar: "grammar",
+
     vocabulary: "my_vocabulary",
+
     reading: "reading",
+
     listening: "listening",
+
     speaking: "speak_ai",
+
     writing: "writing",
+
   };
+
   const recommendedModule = skillToModule[weakest?.skill] || "grammar";
 
+
+
   return {
+
     global_score: globalScore,
+
     global_difficulty: getDifficulty(
+
       globalScore,
+
       skillScores.reduce((sum, item) => sum + item.error_pressure, 0) / Math.max(1, skillScores.length)
+
     ),
+
     recommended_module_key: recommendedModule,
+
     focus_skill: weakest?.skill || "grammar",
+
     skill_scores: skillScores,
+
     last_evaluated: new Date().toISOString(),
+
   };
+
 }
 
+
+
 function startOfWeekIso(date = new Date()) {
+
   const target = new Date(date);
+
   const day = target.getDay();
+
   const diffToMonday = day === 0 ? -6 : 1 - day;
+
   target.setDate(target.getDate() + diffToMonday);
+
   target.setHours(0, 0, 0, 0);
+
   return target.toISOString().slice(0, 10);
+
 }
+
+
 
 function buildWeeklyPlan(goal = "conversacao", progress = {}) {
   const goalKey = goal || "conversacao";
+
   const weekStart = startOfWeekIso();
+
   const profileXp = Number(progress?.profile?.xp || 0);
+
   const baseMinutes = profileXp > 400 ? 35 : profileXp > 150 ? 28 : 22;
 
+
+
   const templates = {
+
     viagem: [
+
       ["listening", "Aeroporto e hotel (listening)", baseMinutes],
+
       ["translation", "Frases úteis EN<->PT para viagem", baseMinutes],
       ["speak_ai", "Roleplay: pedir informação na rua", baseMinutes],
       ["my_vocabulary", "Vocabulário de transporte", baseMinutes - 4],
@@ -403,8 +685,11 @@ function buildWeeklyPlan(goal = "conversacao", progress = {}) {
       ["immersion", "Leitura curta: roteiro turístico", baseMinutes],
       ["flashcards", "Revisão rápida de viagem", baseMinutes - 6],
     ],
+
     trabalho: [
+
       ["writing", "Email profissional e follow-up", baseMinutes + 4],
+
       ["reading", "Leitura de texto de negócios", baseMinutes],
       ["speak_ai", "Simulação de reunião", baseMinutes + 2],
       ["dictionary", "Termos técnicos e sinônimos", baseMinutes - 4],
@@ -412,16 +697,21 @@ function buildWeeklyPlan(goal = "conversacao", progress = {}) {
       ["listening", "Áudio de reunião em inglês", baseMinutes],
       ["flashcards", "Revisão de vocabulário corporativo", baseMinutes - 5],
     ],
+
     prova: [
+
       ["reading", "Compreensão de texto (tempo controlado)", baseMinutes + 6],
       ["writing", "Correção de frase e coesão", baseMinutes + 4],
       ["listening", "Treino de listening com repetição", baseMinutes + 2],
       ["test_level", "Mini simulado por blocos", baseMinutes + 8],
+
       ["grammar", "Revisão de estruturas frequentes", baseMinutes],
       ["translation", "Tradução de alta precisão", baseMinutes],
       ["srs", "Revisão espaçada dos pontos fracos", baseMinutes - 4],
     ],
+
     conversacao: [
+
       ["speak_ai", "Conversação guiada com correção", baseMinutes + 4],
       ["speak_ai", "Perguntas e respostas rápidas", baseMinutes],
       ["pronounce", "Treino de sons críticos", baseMinutes - 2],
@@ -430,22 +720,39 @@ function buildWeeklyPlan(goal = "conversacao", progress = {}) {
       ["immersion", "Diálogo contextual e áudio", baseMinutes],
       ["flashcards", "Frases úteis para diálogo", baseMinutes - 6],
     ],
+
   };
 
+
+
   const chosen = templates[goalKey] || templates.conversacao;
+
   const dayNames = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
+
   return {
+
     goal: goalKey,
+
     week_start: weekStart,
+
     generated_at: new Date().toISOString(),
+
     days: chosen.map((item, index) => ({
+
       day_index: index,
+
       day_name: dayNames[index],
+
       module_key: item[0],
+
       task: item[1],
+
       minutes: Math.max(12, Number(item[2] || baseMinutes)),
+
       status: "pending",
+
     })),
+
   };
 }
 
@@ -516,6 +823,19 @@ function ensurePedagogicalReports(progress) {
   }
   if (!Array.isArray(data.modules.pedagogical_reports.history)) {
     data.modules.pedagogical_reports.history = [];
+  }
+  return data;
+}
+
+function ensureUiNavigation(progress) {
+  const data = progress || {};
+  if (!data.modules) data.modules = {};
+  if (!data.modules.ui_navigation) {
+    data.modules.ui_navigation = {
+      selected_module_key: "grammar",
+      active_screen: "home",
+      grammar_current_level: "A1",
+    };
   }
   return data;
 }
@@ -721,59 +1041,155 @@ function buildRecurringErrorPatterns(progress, previousPatterns = []) {
 
 function buildSrsCandidates(progress) {
   const modules = progress?.modules || {};
+
   const candidates = [];
 
+
+
   const learnedWords = modules.my_vocabulary?.learned_word_ids || [];
+
   if (learnedWords.length > 0) {
+
     candidates.push({
+
       key: `vocab_${learnedWords[0]}`,
+
       module: "Vocabulary",
+
       title: "Revisar palavra aprendida",
+
       prompt: "Tente lembrar a tradução e use em uma frase curta.",
     });
+
   }
+
   if ((modules.grammar?.completed_units || []).length > 0) {
+
     candidates.push({
+
       key: "grammar_recent",
+
       module: "Grammar",
+
       title: "Revisar última unidade de grammar",
       prompt: "Recapitule a estrutura e fale 2 exemplos.",
+
     });
+
   }
+
   if ((modules.translation_practice?.total_attempts || 0) > 0) {
+
     candidates.push({
+
       key: "translation_mix",
+
       module: "Translation",
+
       title: "Revisar tradução EN <-> PT",
       prompt: "Faça 3 traduções rápidas sem ajuda.",
     });
+
   }
+
   if ((modules.listening?.total_completed || 0) > 0) {
+
     candidates.push({
+
       key: "listening_audio",
+
       module: "Listening",
+
       title: "Revisar frases de listening",
+
       prompt: "Ouça e repita com pausa curta.",
     });
+
   }
+
   if (modules.flashcards?.last_results) {
+
     candidates.push({
+
       key: "flashcards_memory",
+
       module: "Flashcards",
+
       title: "Revisar deck recente de flashcards",
+
       prompt: "Passe em 5 cards com resposta ativa.",
+
     });
+
   }
+
   if (candidates.length === 0) {
+
     candidates.push({
+
       key: "starter_review",
+
       module: "Starter",
+
       title: "Primeira revisão global",
       prompt: "Comece pelo módulo Grammar e finalize 1 lição.",
     });
+
   }
+
   return candidates.slice(0, 5);
 }
+
+function toDateOnly(isoDateTime) {
+  if (!isoDateTime || typeof isoDateTime !== "string") return null;
+  const date = isoDateTime.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+}
+
+function computeFlashcardsSrsCounts(srsCards = {}, today = todayIso()) {
+  const weekLimit = addDays(today, 7);
+  let overdue = 0;
+  let dueToday = 0;
+  let dueNext7 = 0;
+
+  for (const entry of Object.values(srsCards || {})) {
+    const dueDate = toDateOnly(entry?.due_at);
+    if (!dueDate) continue;
+    if (dueDate < today) overdue += 1;
+    else if (dueDate === today) dueToday += 1;
+    else if (dueDate <= weekLimit) dueNext7 += 1;
+  }
+
+  return {
+    overdue,
+    dueToday,
+    dueNext7,
+    totalWindow: overdue + dueToday + dueNext7,
+  };
+}
+
+function resolveSrsModuleKey(item) {
+  const moduleLabel = String(item?.module || "").trim().toLowerCase();
+  const key = String(item?.key || "").trim().toLowerCase();
+
+  if (moduleLabel.includes("flash")) return "flashcards";
+  if (moduleLabel.includes("grammar")) return "grammar";
+  if (moduleLabel.includes("translation")) return "translation";
+  if (moduleLabel.includes("listening")) return "listening";
+  if (moduleLabel.includes("vocabulary")) return "my_vocabulary";
+  if (moduleLabel.includes("reading")) return "reading";
+  if (moduleLabel.includes("writing")) return "writing";
+  if (moduleLabel.includes("speaking")) return "speak_ai";
+
+  if (key.startsWith("flashcards")) return "flashcards";
+  if (key.startsWith("grammar")) return "grammar";
+  if (key.startsWith("translation")) return "translation";
+  if (key.startsWith("listening")) return "listening";
+  if (key.startsWith("vocab")) return "my_vocabulary";
+
+  return "grammar";
+}
+
 
 function SidebarButton({ module, active, onClick, index }) {
   const Icon = module.icon;
@@ -808,61 +1224,128 @@ function SidebarButton({ module, active, onClick, index }) {
   );
 }
 
+
+
 function PlaceholderScreen({ module, onBack }) {
+
   return (
+
     <section
+
       className="duo-page-shell"
+
       style={{
+
         "--page-theme": module.color,
+
         "--page-theme-soft": alpha(module.color, 0.18),
+
         "--page-theme-border": alpha(module.color, 0.35),
+
       }}
+
     >
+
       <div className="duo-page-header">
+
         <button type="button" className="duo-back-btn" onClick={onBack}>
+
           Voltar
+
         </button>
+
         <div>
+
           <div className="duo-page-kicker">Modulo em restauracao</div>
+
           <h1>{module.label}</h1>
+
         </div>
+
       </div>
 
+
+
       <div className="duo-placeholder-card">
+
         <h2>{module.label}</h2>
+
         <p>
+
           A estrutura Duolingo desta aba sera restaurada novamente. A base visual e o
+
           tema deste modulo ja foram reaplicados.
+
         </p>
+
         <div className="duo-placeholder-chip-row">
+
           <span className="duo-chip">Tema {module.color}</span>
+
           <span className="duo-chip">Layout web</span>
+
           <span className="duo-chip">Pronto para migracao</span>
+
         </div>
+
       </div>
+
     </section>
+
   );
+
 }
+
+
 
 export default function InitialPage() {
   const [selectedModuleKey, setSelectedModuleKey] = useState("grammar");
   const [activeScreen, setActiveScreen] = useState("home");
+  const [navigationHydrated, setNavigationHydrated] = useState(false);
+  const [pendingSrsReviewId, setPendingSrsReviewId] = useState(null);
+  const [grammarCurrentLevel, setGrammarCurrentLevel] = useState("A1");
+  const [grammarCompletedByLevel, setGrammarCompletedByLevel] = useState({
+    A1: [],
+    A2: [],
+    B1: [],
+    B2: [],
+    C1: [],
+    C2: [],
+  });
   const [profileStats, setProfileStats] = useState({ xp: 124, streak_days: 7, hearts: 5 });
   const [srsState, setSrsState] = useState({
     queue: [],
+
     completed_today: 0,
+
     total_reviews: 0,
+
     last_generated_date: null,
+
     next_item_id: 1,
   });
-  const [adaptiveState, setAdaptiveState] = useState({
-    global_score: 0,
-    global_difficulty: "normal",
-    recommended_module_key: "grammar",
-    focus_skill: "grammar",
-    skill_scores: [],
-    last_evaluated: null,
+  const [flashcardsSrsCounts, setFlashcardsSrsCounts] = useState({
+    overdue: 0,
+    dueToday: 0,
+    dueNext7: 0,
+    totalWindow: 0,
   });
+  const [adaptiveState, setAdaptiveState] = useState({
+
+    global_score: 0,
+
+    global_difficulty: "normal",
+
+    recommended_module_key: "grammar",
+
+    focus_skill: "grammar",
+
+    skill_scores: [],
+
+    last_evaluated: null,
+
+  });
+
   const [weeklyPlanState, setWeeklyPlanState] = useState({
     goal: "conversacao",
     week_start: null,
@@ -908,11 +1391,18 @@ export default function InitialPage() {
   const [onboardingProfile, setOnboardingProfile] = useState("balanced");
   const [onboardingMinutes, setOnboardingMinutes] = useState(20);
 
+
   const selectedModule = useMemo(
+
     () => MODULES.find((m) => m.key === selectedModuleKey) || MODULES[0],
+
     [selectedModuleKey]
+
   );
+
   const SelectedModuleIcon = selectedModule.icon;
+
+
 
   useEffect(() => {
     let mounted = true;
@@ -921,18 +1411,40 @@ export default function InitialPage() {
         const res = await fetch("/api/progress", { cache: "no-store" });
         if (!res.ok) return;
         const parsed = await res.json();
-        const normalized = ensurePedagogicalReports(
-          ensurePedagogicalOnboarding(
-            ensureLongTermRetention(ensureErrorNotebook(ensureSrs(parsed)))
+        const normalized = ensureUiNavigation(
+          ensurePedagogicalReports(
+            ensurePedagogicalOnboarding(
+              ensureLongTermRetention(ensureErrorNotebook(ensureSrs(parsed)))
+            )
           )
         );
         if (!mounted) return;
+
 
         setProfileStats({
           xp: Number(normalized.profile?.xp || 0),
           streak_days: Number(normalized.profile?.streak_days || 0),
           hearts: Number(normalized.profile?.hearts || 5),
         });
+
+        const grammarBlock = normalized.modules?.grammar || {};
+        const completedByLevelRaw = grammarBlock.completed_units_by_level || {};
+        const nextGrammarByLevel = {
+          A1: Array.isArray(completedByLevelRaw.A1)
+            ? completedByLevelRaw.A1
+            : Array.isArray(grammarBlock.completed_units)
+              ? grammarBlock.completed_units
+              : [],
+          A2: Array.isArray(completedByLevelRaw.A2) ? completedByLevelRaw.A2 : [],
+          B1: Array.isArray(completedByLevelRaw.B1) ? completedByLevelRaw.B1 : [],
+          B2: Array.isArray(completedByLevelRaw.B2) ? completedByLevelRaw.B2 : [],
+          C1: Array.isArray(completedByLevelRaw.C1) ? completedByLevelRaw.C1 : [],
+          C2: Array.isArray(completedByLevelRaw.C2) ? completedByLevelRaw.C2 : [],
+        };
+        setGrammarCompletedByLevel(nextGrammarByLevel);
+        setGrammarCurrentLevel(
+          GRAMMAR_LEVEL_ORDER.includes(grammarBlock.current_level) ? grammarBlock.current_level : "A1"
+        );
 
         let nextSrs = { ...normalized.modules.srs_global };
         const previousAdaptive = normalized.modules.adaptive_diagnostics || {};
@@ -963,40 +1475,76 @@ export default function InitialPage() {
         const previousWeeklyPlan = normalized.modules.weekly_study_plan || null;
         const currentOnboarding = normalized.modules.pedagogical_onboarding || null;
         let nextWeeklyPlan = previousWeeklyPlan;
+
         const currentWeekStart = startOfWeekIso();
+
         if (
+
           !previousWeeklyPlan ||
+
           !previousWeeklyPlan.week_start ||
+
           previousWeeklyPlan.week_start !== currentWeekStart ||
+
           !Array.isArray(previousWeeklyPlan.days)
+
         ) {
+
           nextWeeklyPlan = buildWeeklyPlan(previousWeeklyPlan?.goal || "conversacao", normalized);
+
           normalized.modules.weekly_study_plan = nextWeeklyPlan;
+
         }
+
         const today = todayIso();
+
         let shouldSave = false;
+
         if (nextSrs.last_generated_date !== today) {
+
           const candidates = buildSrsCandidates(normalized);
+
           const firstId = Number(nextSrs.next_item_id || 1);
+
           nextSrs = {
+
             ...nextSrs,
+
             completed_today: 0,
+
             last_generated_date: today,
+
             next_item_id: firstId + candidates.length,
+
             queue: candidates.map((candidate, idx) => ({
+
               id: firstId + idx,
+
               key: candidate.key,
+
               module: candidate.module,
+
               title: candidate.title,
+
               prompt: candidate.prompt,
+
               due_date: today,
+
               interval_days: 1,
+
               status: "due",
+
             })),
+
           };
+
           normalized.modules.srs_global = nextSrs;
+
           shouldSave = true;
+
         }
+
+
 
         if (JSON.stringify(previousAdaptive) !== JSON.stringify(nextAdaptive)) {
           shouldSave = true;
@@ -1040,15 +1588,27 @@ export default function InitialPage() {
           shouldSave = true;
         }
 
+
         if (shouldSave) {
+
           await fetch("/api/progress", {
+
             method: "PUT",
+
             headers: { "Content-Type": "application/json" },
+
             body: JSON.stringify(normalized),
+
           });
+
         }
 
+
+
         setSrsState(nextSrs);
+        setFlashcardsSrsCounts(
+          computeFlashcardsSrsCounts(normalized.modules?.flashcards?.srs_cards || {}, todayIso())
+        );
         setAdaptiveState(nextAdaptive);
         setWeeklyPlanState(nextWeeklyPlan || buildWeeklyPlan("conversacao", normalized));
         setErrorNotebookState(nextNotebook);
@@ -1065,18 +1625,60 @@ export default function InitialPage() {
         setOnboardingAnswers(currentOnboarding?.quiz_answers || {});
         setShowOnboarding(!currentOnboarding?.completed);
         setOnboardingStep(0);
-        if (currentOnboarding?.recommended_module_key) {
+        const savedNavigation = normalized.modules.ui_navigation || {};
+        if (savedNavigation.selected_module_key) {
+          setSelectedModuleKey(savedNavigation.selected_module_key);
+        } else if (currentOnboarding?.recommended_module_key) {
           setSelectedModuleKey(currentOnboarding.recommended_module_key);
         }
+        if (savedNavigation.active_screen) {
+          setActiveScreen(savedNavigation.active_screen);
+        }
+        if (
+          savedNavigation.grammar_current_level &&
+          GRAMMAR_LEVEL_ORDER.includes(savedNavigation.grammar_current_level)
+        ) {
+          setGrammarCurrentLevel(savedNavigation.grammar_current_level);
+        }
+        setNavigationHydrated(true);
       } catch {
         if (!mounted) return;
+        setNavigationHydrated(true);
       }
     })();
+
 
     return () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!navigationHydrated) return;
+
+    const saveNavigation = async () => {
+      try {
+        const res = await fetch("/api/progress", { cache: "no-store" });
+        if (!res.ok) return;
+        const progress = ensureUiNavigation(await res.json());
+        progress.modules.ui_navigation = {
+          ...(progress.modules.ui_navigation || {}),
+          selected_module_key: selectedModuleKey,
+          active_screen: activeScreen,
+          grammar_current_level: grammarCurrentLevel,
+        };
+        await fetch("/api/progress", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(progress),
+        });
+      } catch {
+        // no-op
+      }
+    };
+
+    void saveNavigation();
+  }, [activeScreen, grammarCurrentLevel, navigationHydrated, selectedModuleKey]);
 
   const dueItems = useMemo(
     () => (srsState.queue || []).filter((item) => item.status === "due"),
@@ -1092,95 +1694,183 @@ export default function InitialPage() {
     const dueNext7 = withDate.filter(
       (item) => item.due_date > today && item.due_date <= weekLimit && item.status !== "done"
     ).length;
-    const totalWindow = overdue + dueToday + dueNext7;
+    const totalWindow =
+      overdue +
+      dueToday +
+      dueNext7 +
+      Number(flashcardsSrsCounts.overdue || 0) +
+      Number(flashcardsSrsCounts.dueToday || 0) +
+      Number(flashcardsSrsCounts.dueNext7 || 0);
+    const dueTodayTotal = dueToday + Number(flashcardsSrsCounts.dueToday || 0) + Number(flashcardsSrsCounts.overdue || 0);
+    const dueNext7Total = dueNext7 + Number(flashcardsSrsCounts.dueNext7 || 0);
     return {
-      overdue,
-      dueToday,
-      dueNext7,
+      overdue: overdue + Number(flashcardsSrsCounts.overdue || 0),
+      dueToday: dueTodayTotal,
+      dueNext7: dueNext7Total,
       totalWindow,
-      weekProgress: totalWindow > 0 ? Math.round(((dueToday + dueNext7) / totalWindow) * 100) : 0,
+      weekProgress: totalWindow > 0 ? Math.round(((dueTodayTotal + dueNext7Total) / totalWindow) * 100) : 0,
     };
-  }, [srsState.queue]);
+  }, [flashcardsSrsCounts.dueNext7, flashcardsSrsCounts.dueToday, flashcardsSrsCounts.overdue, srsState.queue]);
+  const dueItemsTotal = Number(dueItems.length || 0) + Number(flashcardsSrsCounts.overdue || 0) + Number(flashcardsSrsCounts.dueToday || 0);
+
 
   const completeReview = async (itemId) => {
     const target = (srsState.queue || []).find((item) => item.id === itemId);
+
     if (!target) return;
 
+
+
     const nextInterval = target.interval_days >= 7 ? 14 : target.interval_days >= 3 ? 7 : 3;
+
     const today = todayIso();
+
     const nextQueue = (srsState.queue || []).map((item) =>
+
       item.id === itemId
+
         ? {
+
             ...item,
+
             status: "scheduled",
+
             interval_days: nextInterval,
+
             due_date: addDays(today, nextInterval),
+
           }
+
         : item
+
     );
 
+
+
     const nextSrs = {
+
       ...srsState,
+
       queue: nextQueue,
+
       completed_today: Number(srsState.completed_today || 0) + 1,
+
       total_reviews: Number(srsState.total_reviews || 0) + 1,
+
     };
+
     setSrsState(nextSrs);
 
+
+
     try {
+
       const res = await fetch("/api/progress", { cache: "no-store" });
+
       if (!res.ok) return;
+
       const progress = ensureSrs(await res.json());
+
       progress.modules.srs_global = {
+
         ...progress.modules.srs_global,
+
         ...nextSrs,
+
       };
+
       await fetch("/api/progress", {
+
         method: "PUT",
+
         headers: { "Content-Type": "application/json" },
+
         body: JSON.stringify(progress),
+
       });
+
     } catch {
+
       // no-op
+
     }
+
   };
+
+
 
   const skillLabel = (skillKey) => {
+
     const map = {
+
       grammar: "Grammar",
+
       vocabulary: "Vocabulary",
+
       reading: "Reading",
+
       listening: "Listening",
+
       speaking: "Speaking",
+
       writing: "Writing",
+
     };
+
     return map[skillKey] || skillKey;
+
   };
 
+
+
   const difficultyLabel = (level) => {
+
     if (level === "basic") return "Base";
+
     if (level === "advanced") return "Avançado";
     return "Normal";
+
   };
+
+
 
   const goalLabel = (goal) => {
     const map = {
+
       viagem: "Viagem",
+
       trabalho: "Trabalho",
+
       prova: "Prova",
+
       conversacao: "Conversacao",
+
     };
+
     return map[goal] || "Conversacao";
   };
 
-  const saveWeeklyPlan = async (nextPlan) => {
-    setWeeklyPlanState(nextPlan);
+  const getGrammarCompletedCount = (levelId) =>
+    Math.min(
+      Number(GRAMMAR_LEVEL_TOTALS[levelId] || 0),
+      Number((grammarCompletedByLevel[levelId] || []).length || 0)
+    );
+
+  const isGrammarLevelUnlocked = (levelId) => {
+    const levelIndex = GRAMMAR_LEVEL_ORDER.indexOf(levelId);
+    if (levelIndex <= 0) return true;
+    const previous = GRAMMAR_LEVEL_ORDER[levelIndex - 1];
+    return getGrammarCompletedCount(previous) >= Number(GRAMMAR_LEVEL_TOTALS[previous] || 0);
+  };
+
+  const persistGrammarLevel = async (levelId) => {
     try {
       const res = await fetch("/api/progress", { cache: "no-store" });
       if (!res.ok) return;
       const progress = await res.json();
       if (!progress.modules) progress.modules = {};
-      progress.modules.weekly_study_plan = nextPlan;
+      if (!progress.modules.grammar) progress.modules.grammar = {};
+      progress.modules.grammar.current_level = levelId;
       await fetch("/api/progress", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -1191,36 +1881,145 @@ export default function InitialPage() {
     }
   };
 
-  const regenerateWeeklyPlan = async (goal = weeklyPlanState.goal || "conversacao") => {
-    try {
-      const res = await fetch("/api/progress", { cache: "no-store" });
-      if (!res.ok) return;
-      const progress = await res.json();
-      const next = buildWeeklyPlan(goal, progress);
-      await saveWeeklyPlan(next);
-    } catch {
-      // no-op
-    }
+  const selectGrammarLevel = async (levelId) => {
+    if (!GRAMMAR_LEVEL_ORDER.includes(levelId)) return;
+    if (!isGrammarLevelUnlocked(levelId)) return;
+    setGrammarCurrentLevel(levelId);
+    await persistGrammarLevel(levelId);
   };
 
-  const updateWeeklyGoal = async (goal) => {
-    if (!goal) return;
-    await regenerateWeeklyPlan(goal);
+  const openGrammarLevelModule = async (levelId) => {
+    if (!GRAMMAR_LEVEL_ORDER.includes(levelId)) return;
+    if (!isGrammarLevelUnlocked(levelId)) return;
+    setPendingSrsReviewId(null);
+    setGrammarCurrentLevel(levelId);
+    setSelectedModuleKey("grammar");
+    await persistGrammarLevel(levelId);
+    setActiveScreen("module");
   };
+
+
+  const saveWeeklyPlan = async (nextPlan) => {
+
+    setWeeklyPlanState(nextPlan);
+
+    try {
+
+      const res = await fetch("/api/progress", { cache: "no-store" });
+
+      if (!res.ok) return;
+
+      const progress = await res.json();
+
+      if (!progress.modules) progress.modules = {};
+
+      progress.modules.weekly_study_plan = nextPlan;
+
+      await fetch("/api/progress", {
+
+        method: "PUT",
+
+        headers: { "Content-Type": "application/json" },
+
+        body: JSON.stringify(progress),
+
+      });
+
+    } catch {
+
+      // no-op
+
+    }
+
+  };
+
+
+
+  const regenerateWeeklyPlan = async (goal = weeklyPlanState.goal || "conversacao") => {
+
+    try {
+
+      const res = await fetch("/api/progress", { cache: "no-store" });
+
+      if (!res.ok) return;
+
+      const progress = await res.json();
+
+      const next = buildWeeklyPlan(goal, progress);
+
+      await saveWeeklyPlan(next);
+
+    } catch {
+
+      // no-op
+
+    }
+
+  };
+
+
+
+  const updateWeeklyGoal = async (goal) => {
+
+    if (!goal) return;
+
+    await regenerateWeeklyPlan(goal);
+
+  };
+
+
 
   const toggleWeeklyDayDone = async (dayIndex) => {
     const days = Array.isArray(weeklyPlanState.days) ? weeklyPlanState.days : [];
+
     const nextDays = days.map((day) =>
+
       day.day_index === dayIndex
+
         ? { ...day, status: day.status === "done" ? "pending" : "done" }
+
         : day
+
     );
+
     const nextPlan = {
+
       ...weeklyPlanState,
+
       days: nextDays,
+
       generated_at: weeklyPlanState.generated_at || new Date().toISOString(),
+
     };
+
     await saveWeeklyPlan(nextPlan);
+  };
+
+  const openReviewModule = (item) => {
+    const moduleKey = resolveSrsModuleKey(item);
+    setPendingSrsReviewId(Number(item?.id) || null);
+    setSelectedModuleKey(moduleKey);
+    setActiveScreen("module");
+  };
+  const selectModule = (moduleKey) => {
+    setPendingSrsReviewId(null);
+    setSelectedModuleKey(moduleKey);
+  };
+  const openSelectedModule = () => {
+    setPendingSrsReviewId(null);
+    if (selectedModule.key === "grammar") {
+      void persistGrammarLevel(grammarCurrentLevel);
+    }
+    setActiveScreen("module");
+  };
+
+  const handleModuleBack = async () => {
+    const reviewId = pendingSrsReviewId;
+    setPendingSrsReviewId(null);
+    setActiveScreen("home");
+    if (reviewId != null) {
+      await completeReview(reviewId);
+    }
   };
 
   const saveErrorNotebook = async (nextNotebook) => {
@@ -1481,189 +2280,373 @@ export default function InitialPage() {
   );
   const lastPedagogicalReport = pedagogicalReportState.last_report || null;
 
+
   if (activeScreen === "module" && selectedModule.key === "grammar") {
+
     return (
+
       <Grammar
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "flashcards") {
+
     return (
+
       <Flashcards
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "my_vocabulary") {
+
     return (
+
       <MyVocabulary
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "dictionary") {
+
     return (
+
       <Dictionary
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "courses") {
+
     return (
+
       <Courses
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "speak_ai") {
+
     return (
+
       <SpeakWithAI
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "reading") {
+
     return (
+
       <ReadingComprehension
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "pronounce") {
+
     return (
+
       <Pronounce
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "writing") {
+
     return (
+
       <Writing
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "games") {
+
     return (
+
       <Games
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "modern") {
+
     return (
+
       <Modernmethodologies
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "listening") {
+
     return (
+
       <Listening
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "immersion") {
+
     return (
+
       <Immersion
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "natives") {
+
     return (
+
       <SpeakWithnatives
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "translation") {
+
     return (
+
       <TranslationPractice
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "test_level") {
+
     return (
+
       <TestYourEnglishLevel
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "community") {
+
     return (
+
       <Community
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "profile") {
+
     return (
+
       <ProfileModule
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module" && selectedModule.key === "music") {
+
     return (
+
       <MusicModule
-        setCurrentView={() => setActiveScreen("home")}
+
+        setCurrentView={handleModuleBack}
+
         color={selectedModule.color}
+
       />
+
     );
+
   }
+
+
 
   if (activeScreen === "module") {
+
     return (
+
       <PlaceholderScreen
+
         module={selectedModule}
+
         onBack={() => setActiveScreen("home")}
+
       />
+
     );
+
   }
 
+
+
   return (
+
     <div className="duo-home-layout">
+
       <aside className="duo-left-sidebar">
+
         <div className="duo-logo-block">
           <a aria-current="" className="duo-brand-link" href="">
             <img
@@ -1679,57 +2662,123 @@ export default function InitialPage() {
           </a>
         </div>
 
+
         <div className="duo-sidebar-list">
+
           {MODULES.map((module, index) => (
+
             <SidebarButton
+
               key={module.key}
+
               module={module}
+
               index={index}
+
               active={selectedModule.key === module.key}
-              onClick={setSelectedModuleKey}
+
+              onClick={selectModule}
+
             />
+
           ))}
+
         </div>
+
       </aside>
 
+
+
       <main className="duo-center-panel">
+
         <div className="duo-top-stats">
+
           <div className="duo-stat-pill duo-stat-blue">
+
             <Gem size={16} />
+
             <span>{profileStats.xp} XP</span>
+
           </div>
+
           <div className="duo-stat-pill duo-stat-orange">
+
             <Flame size={16} />
+
             <span>{profileStats.streak_days} dias</span>
+
           </div>
+
           <div className="duo-stat-pill duo-stat-heart">
+
             <Heart size={16} />
+
             <span>{profileStats.hearts}</span>
+
           </div>
+
         </div>
 
+
+
         {selectedModule.key === "grammar" ? (
-          <section className="duo-grammar-section-card">
-            <div className="duo-grammar-section-top">
-              <span className="duo-grammar-section-kicker">B1 • VER DETALHES</span>
-              <button type="button" className="duo-grammar-review-btn" onClick={() => setActiveScreen("module")}>
-                REVISAR
-              </button>
-            </div>
-            <h1>Seção 6</h1>
-            <div className="duo-grammar-complete-line">
-              <CheckCircle2 size={18} />
-              <span>CONCLUÍDO!</span>
-            </div>
-            <div className="duo-grammar-progress-wrap">
-              <div className="duo-grammar-progress-track">
-                <div className="duo-grammar-progress-fill" style={{ width: `${Math.max(8, Math.min(100, Number(adaptiveState.global_score || 0)))}%` }} />
-              </div>
-              <span>{Math.max(8, Math.min(100, Number(adaptiveState.global_score || 0)))}%</span>
-            </div>
-            <button type="button" className="duo-open-module-btn duo-grammar-continue-btn" onClick={() => setActiveScreen("module")}>
-              CONTINUAR
-            </button>
+          <section className="duo-grammar-level-list">
+            {GRAMMAR_LEVEL_ORDER.map((levelId, levelIndex) => {
+              const unlocked = isGrammarLevelUnlocked(levelId);
+              const isActive = grammarCurrentLevel === levelId;
+              const done = getGrammarCompletedCount(levelId) >= Number(GRAMMAR_LEVEL_TOTALS[levelId] || 0);
+              const progressPct = Math.max(
+                0,
+                Math.min(
+                  100,
+                  Math.round(
+                    (getGrammarCompletedCount(levelId) / Math.max(1, Number(GRAMMAR_LEVEL_TOTALS[levelId] || 1))) *
+                      100
+                  )
+                )
+              );
+              return (
+                <article
+                  key={levelId}
+                  className={`duo-grammar-section-card duo-grammar-level-card ${isActive ? "is-active" : ""} ${!unlocked ? "is-locked" : ""}`}
+                >
+                  <div className="duo-grammar-section-top">
+                    <span className="duo-grammar-section-kicker">{levelId} - VER DETALHES</span>
+                    <button
+                      type="button"
+                      className="duo-grammar-review-btn"
+                      disabled={!unlocked}
+                      onClick={() => {
+                        void openGrammarLevelModule(levelId);
+                      }}
+                    >
+                      REVISAR
+                    </button>
+                  </div>
+                  <h1>Secao {levelIndex + 1}</h1>
+                  <div className="duo-grammar-complete-line">
+                    <CheckCircle2 size={18} />
+                    <span>{done ? "CONCLUIDO!" : unlocked ? "EM PROGRESSO" : "BLOQUEADO"}</span>
+                  </div>
+                  <div className="duo-grammar-progress-wrap">
+                    <div className="duo-grammar-progress-track">
+                      <div className="duo-grammar-progress-fill" style={{ width: `${progressPct}%` }} />
+                    </div>
+                    <span>{progressPct}%</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="duo-open-module-btn duo-grammar-continue-btn"
+                    disabled={!unlocked}
+                    onClick={() => {
+                      void openGrammarLevelModule(levelId);
+                    }}
+                  >
+                    {done ? "REVISAR NIVEL" : unlocked ? "CONTINUAR" : `PULAR PRA SECAO ${levelIndex + 1}`}
+                  </button>
+                </article>
+              );
+            })}
           </section>
         ) : (
           <section
@@ -1748,7 +2797,7 @@ export default function InitialPage() {
             <button
               type="button"
               className="duo-open-module-btn"
-              onClick={() => setActiveScreen("module")}
+              onClick={openSelectedModule}
             >
               <SelectedModuleIcon size={18} />
               Abrir modulo
@@ -1758,6 +2807,7 @@ export default function InitialPage() {
         )}
 
       </main>
+
 
       <aside className="duo-right-rail">
         <div className="duo-info-card">
@@ -1851,13 +2901,18 @@ export default function InitialPage() {
 
         <div className="duo-info-card duo-srs-card">
           <div className="duo-info-head">
+
             <span>Revisao espacada global</span>
+
             <button type="button">SRS</button>
+
           </div>
+
+
 
           <div className="duo-srs-summary">
             <span>Hoje: {srsState.completed_today} concluida(s)</span>
-            <span>Pendentes: {dueItems.length}</span>
+            <span>Pendentes: {dueItemsTotal}</span>
           </div>
 
           <div className="duo-srs-kpi-grid">
@@ -1887,95 +2942,189 @@ export default function InitialPage() {
           <div className="duo-progress-bar duo-srs-progress">
             <div
               className="duo-progress-fill"
+
               style={{
+
                 width: `${Math.min(
+
                   100,
+
                   Math.round(
+
                     (Number(srsState.completed_today || 0) /
+
                       Math.max(
+
                         1,
+
                         Number(srsState.completed_today || 0) + Number(dueItems.length || 0)
+
                       )) *
+
                       100
+
                   )
+
                 )}%`,
+
               }}
+
             />
+
             <span>
+
               {srsState.completed_today} /{" "}
+
               {Number(srsState.completed_today || 0) + Number(dueItems.length || 0)}
+
             </span>
+
           </div>
 
+
+
           <div className="duo-srs-list">
+            {(Number(flashcardsSrsCounts.overdue || 0) + Number(flashcardsSrsCounts.dueToday || 0)) > 0 ? (
+              <article className="duo-srs-item">
+                <div>
+                  <strong>Flashcards vencidos</strong>
+                  <p>
+                    {Number(flashcardsSrsCounts.overdue || 0) + Number(flashcardsSrsCounts.dueToday || 0)} card(s) para revisar agora.
+                  </p>
+                </div>
+                <button type="button" onClick={() => { selectModule("flashcards"); setActiveScreen("module"); }}>
+                  <CheckCircle2 size={15} />
+                  Abrir Flashcards
+                </button>
+              </article>
+            ) : null}
             {dueItems.slice(0, 3).map((item) => (
               <article key={item.id} className="duo-srs-item">
                 <div>
                   <strong>{item.title}</strong>
                   <p>{item.module}: {item.prompt}</p>
                 </div>
-                <button type="button" onClick={() => completeReview(item.id)}>
-                  <CheckCircle2 size={15} />
-                  Revisar
-                </button>
+                <div className="duo-srs-item-actions">
+                  <button type="button" onClick={() => openReviewModule(item)}>
+                    <CheckCircle2 size={15} />
+                    Abrir modulo
+                  </button>
+                  <button type="button" className="is-secondary" onClick={() => completeReview(item.id)}>
+                    Marcar revisado
+                  </button>
+                </div>
               </article>
             ))}
             {dueItems.length === 0 ? (
+
               <div className="duo-srs-empty">
+
                 <RotateCcw size={16} />
+
                 Revisoes do dia em dia.
+
               </div>
+
             ) : null}
+
           </div>
+
         </div>
+
+
 
         <div className="duo-info-card duo-adaptive-card">
           <div className="duo-info-head">
+
             <span>Diagnostico adaptativo</span>
+
             <button type="button">AUTO</button>
+
           </div>
+
+
 
           <div className="duo-adaptive-summary">
+
             <span>
+
               <Gauge size={14} />
+
               Score: {adaptiveState.global_score}
+
             </span>
+
             <span>
+
               <BrainCircuit size={14} />
+
               Dificuldade: {difficultyLabel(adaptiveState.global_difficulty)}
+
             </span>
+
           </div>
+
+
 
           <div className="duo-adaptive-focus">
+
             <p>
+
               Foco atual: <strong>{skillLabel(adaptiveState.focus_skill)}</strong>
+
             </p>
+
             <button
+
               type="button"
-              onClick={() => setSelectedModuleKey(adaptiveState.recommended_module_key || "grammar")}
+
+              onClick={() => selectModule(adaptiveState.recommended_module_key || "grammar")}
+
             >
+
               Aplicar ajuste
+
             </button>
+
           </div>
 
+
+
           <div className="duo-adaptive-skills">
+
             {(adaptiveState.skill_scores || []).map((item) => (
+
               <article key={item.skill} className="duo-adaptive-skill-item">
+
                 <div className="duo-adaptive-skill-head">
+
                   <strong>{skillLabel(item.skill)}</strong>
+
                   <span>
+
                     <TrendingUp size={13} />
+
                     {item.score}
+
                   </span>
+
                 </div>
+
                 <div className="duo-adaptive-track">
+
                   <div className="duo-adaptive-fill" style={{ width: `${item.score}%` }} />
+
                 </div>
+
                 <em>
+
                   {difficultyLabel(item.difficulty)} · erro {Math.round(Number(item.error_pressure || 0) * 100)}%
                 </em>
+
               </article>
+
             ))}
+
           </div>
         </div>
 
@@ -2138,28 +3287,51 @@ export default function InitialPage() {
           <div className="duo-info-head">
             <span>Missoes do dia</span>
             <button type="button">VER TODAS</button>
+
           </div>
+
           <div className="duo-mission-item">
+
             <div className="duo-mission-title">Ganhe 10 XP</div>
+
             <div className="duo-progress-bar">
+
               <div className="duo-progress-fill" style={{ width: "20%" }} />
+
               <span>2 / 10</span>
+
             </div>
+
           </div>
+
         </div>
 
+
+
         <div className="duo-info-card">
+
           <div className="duo-info-title">Crie um perfil pra salvar o seu progresso!</div>
+
           <div className="duo-cta-stack">
+
             <button type="button" className="duo-cta-primary">
+
               <UserPlus size={18} />
+
               CRIAR UM PERFIL
+
             </button>
+
             <button type="button" className="duo-cta-secondary">
+
               <LogIn size={18} />
+
               ENTRAR
+
             </button>
+
           </div>
+
         </div>
       </aside>
 
@@ -2268,6 +3440,14 @@ export default function InitialPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 

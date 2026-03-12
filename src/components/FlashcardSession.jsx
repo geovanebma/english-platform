@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Volume2 } from "lucide-react";
 
 const RATINGS = [
@@ -33,22 +33,31 @@ export default function FlashcardSession({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [sourceLanguage, setSourceLanguage] = useState("pt-BR");
   const [learningLanguage, setLearningLanguage] = useState("en-US");
+  const lastProgressSnapshotRef = useRef("");
 
   const currentCard = deck[currentIndex];
   const total = deck.length || 1;
   const progress = ((currentIndex + 1) / total) * 100;
 
   useEffect(() => {
-    onProgress?.({
+    const progressPayload = {
       deck_id: initialSession?.deck_id || deckId,
       card_order: deck.map((c) => c.id),
       current_index: currentIndex,
       is_flipped: isFlipped,
       answers,
       completed: false,
+    };
+
+    const snapshot = JSON.stringify(progressPayload);
+    if (lastProgressSnapshotRef.current === snapshot) return;
+    lastProgressSnapshotRef.current = snapshot;
+
+    onProgress?.({
+      ...progressPayload,
       updated_at: new Date().toISOString(),
     });
-  }, [answers, currentIndex, deck, deckId, initialSession?.deck_id, isFlipped, onProgress]);
+  }, [answers, currentIndex, deck, deckId, initialSession?.deck_id, isFlipped]);
 
   useEffect(() => {
     if (!window.speechSynthesis) return undefined;

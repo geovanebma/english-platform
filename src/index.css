@@ -1,15 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+﻿@font-face {
+  font-family: "DIN Round Pro";
+  src: local("DIN Round Pro Light"), local("DINRoundPro-Light"), url('/fonts/dinroundpro_light.otf') format('opentype');
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: "DIN Round Pro";
+  src: local("DIN Round Pro Medium"), local("DINRoundPro-Medium"), url('/fonts/dinroundpro_medi.otf') format('opentype');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DIN Round Pro";
+  src: local("DIN Round Pro Bold"), local("DINRoundPro-Bold"), url('/fonts/dinroundpro_bold.otf') format('opentype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DIN Round Pro";
+  src: local("DIN Round Pro Black"), local("DINRoundPro-Black"), url('/fonts/dinroundpro_black.otf') format('opentype');
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
 :root {
-  font-family: "Varela Round", sans-serif;
+  font-family: "DIN Round Pro", sans-serif;
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: 500;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
-
   font-synthesis: none;
+  font-synthesis-weight: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -41,7 +70,7 @@ button {
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
-  background-color: #1a1a1a;
+  background-color: #131f24;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -67,12 +96,12 @@ button:focus-visible {
 }
 
 
-/* ... (Seção @import e @tailwind) ... */
+/* ... (SeÃ§Ã£o @import e @tailwind) ... */
 
-/* Aplicação Global da Fonte e Reset de Estilo */
+/* AplicaÃ§Ã£o Global da Fonte e Reset de Estilo */
 body {
     /* Define a fonte em todo o projeto */
-    font-family: "Varela Round", sans-serif;
+    font-family: "DIN Round Pro", sans-serif;
     /* Estilo base de um SaaS limpo */
     background-color: #f7f7f7; 
     color: #333;
@@ -82,10 +111,10 @@ body {
 /* Regra para H1 - H6 com font-weight bold, como solicitado */
 h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
-    color: #1a1a1a; /* Um preto mais forte para cabeçalhos */
+    color: #1a1a1a; /* Um preto mais forte para cabeÃ§alhos */
 }
 
-/* Regras de Reset Básico (para limpar margens e paddings padrão do navegador) */
+/* Regras de Reset BÃ¡sico (para limpar margens e paddings padrÃ£o do navegador) */
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -303,3 +332,24 @@ html {
   box-shadow: 0 2px 0 #4cae00;
   transform: translateY(2px);
 } */
+
+
+html, body, body * {
+  font-family: "DIN Round Pro", sans-serif !important;
+  font-weight: 500 !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[class*="title"],
+[class*="Title"],
+[class$="-title"],
+[class$="-head"] h1 {
+  font-weight: 700 !important;
+}
+
+

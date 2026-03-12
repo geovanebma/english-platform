@@ -7909,3 +7909,339 @@ h6,
   height: 28px !important;
   stroke-width: 2.4;
 }
+
+
+/* ===== Alternative Brand Identity: Initial 2 ===== */
+:root {
+  --brand2-bg: #0f1720;
+  --brand2-bg-soft: #16222d;
+  --brand2-surface: #182734;
+  --brand2-surface-2: #213546;
+  --brand2-border: rgba(255, 255, 255, 0.08);
+  --brand2-text: #f6f7fb;
+  --brand2-text-soft: #afbcc9;
+  --brand2-accent: #ff7a00;
+  --brand2-accent-soft: #ffb347;
+  --brand2-secondary: #00c2a8;
+  --brand2-danger: #ff5a70;
+  --brand2-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+  --brand2-radius-xl: 28px;
+  --brand2-radius-lg: 22px;
+  --brand2-radius-md: 16px;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 0, 0.10), transparent 30%),
+    radial-gradient(circle at top right, rgba(0, 194, 168, 0.10), transparent 28%),
+    linear-gradient(180deg, #0f1720 0%, #121d27 100%);
+  color: var(--brand2-text);
+}
+
+.duo-home-layout {
+  grid-template-columns: 300px minmax(0, 1fr) 360px;
+  background: transparent;
+  gap: 0;
+}
+
+.duo-left-sidebar,
+.duo-center-panel,
+.duo-right-rail {
+  background: transparent;
+}
+
+.duo-left-sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 28px 18px 28px 22px;
+}
+
+.duo-logo-block {
+  background: linear-gradient(180deg, rgba(29, 45, 58, 0.86), rgba(20, 31, 41, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--brand2-shadow);
+  border-radius: var(--brand2-radius-xl);
+  padding: 20px 18px;
+}
+
+.duo-sidebar-list {
+  gap: 12px;
+}
+
+.duo-unit-btn {
+  border-radius: 22px;
+  padding: 13px 15px;
+}
+
+.duo-unit-btn::before {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--unit-color) 86%, #fff 14%), var(--unit-color));
+  box-shadow:
+    0 8px 0 color-mix(in srgb, var(--unit-color) 58%, #000 42%),
+    0 16px 30px rgba(0, 0, 0, 0.16);
+}
+
+.duo-unit-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.duo-unit-text {
+  font-size: 1.02rem;
+  letter-spacing: 0;
+}
+
+.duo-center-panel {
+  padding: 26px 26px 34px;
+}
+
+.duo-top-stats {
+  justify-content: flex-start;
+  margin-bottom: 22px;
+}
+
+.duo-stat-pill {
+  border-radius: 18px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+.duo-current-card {
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    radial-gradient(circle at top right, rgba(255, 122, 0, 0.18), transparent 28%),
+    linear-gradient(145deg, rgba(31, 46, 59, 0.96), rgba(17, 26, 34, 0.98));
+  box-shadow: var(--brand2-shadow);
+  padding: 34px 30px;
+}
+
+.duo-current-card-kicker {
+  color: var(--brand2-accent-soft);
+  font-size: 0.86rem;
+  letter-spacing: 0.12em;
+}
+
+.duo-current-card h1 {
+  font-size: clamp(2.1rem, 3vw, 3.6rem);
+  letter-spacing: -0.03em;
+}
+
+.duo-current-card p {
+  color: var(--brand2-text-soft);
+  font-size: 1.02rem;
+  max-width: 720px;
+}
+
+.duo-open-module-btn,
+.module-guide-launch,
+.duo-cta-primary,
+.duo-open-module-btn,
+.duo-cta-secondary,
+.duo-grammar-continue-btn,
+.duo-grammar-review-btn {
+  border-radius: 18px;
+}
+
+.duo-open-module-btn {
+  background: linear-gradient(180deg, #ff982f, var(--brand2-accent));
+  box-shadow: 0 8px 0 #b65500;
+  color: #fff !important;
+}
+
+.duo-center-trail-preview,
+.duo-info-card,
+.duo-grammar-section-card {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    linear-gradient(180deg, rgba(24, 39, 52, 0.92), rgba(17, 28, 37, 0.98));
+  box-shadow: var(--brand2-shadow);
+}
+
+.duo-grammar-section-card {
+  border-radius: 28px;
+}
+
+.duo-grammar-section-kicker {
+  color: var(--brand2-accent-soft);
+}
+
+.duo-grammar-progress-track,
+.duo-progress-bar,
+.duo-srs-week-track {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.duo-grammar-progress-fill,
+.duo-progress-fill,
+.duo-srs-week-fill {
+  background: linear-gradient(90deg, var(--brand2-accent-soft), var(--brand2-accent));
+}
+
+.duo-right-rail {
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 24px 20px 34px;
+}
+
+.duo-info-card {
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.duo-info-title,
+.duo-info-head span {
+  font-size: 1.18rem;
+}
+
+.duo-info-head button {
+  color: var(--brand2-accent-soft);
+}
+
+.duo-cta-primary {
+  background: linear-gradient(180deg, #ff9f39, var(--brand2-accent));
+  box-shadow: 0 8px 0 #b65500;
+  color: #fff !important;
+}
+
+.duo-cta-secondary {
+  background: linear-gradient(180deg, #1ad9c1, var(--brand2-secondary));
+  box-shadow: 0 8px 0 #007e6d;
+  color: #fff !important;
+}
+
+.duo-srs-summary span,
+.duo-srs-item,
+.duo-srs-kpi-grid article,
+.duo-mission-card,
+.duo-adaptive-card,
+.duo-studyplan-card,
+.duo-errorbook-card,
+.duo-retention-card,
+.duo-onboarding-card,
+.duo-reports-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+.duo-unit-mascot {
+  border: 0;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.duo-brand-link {
+  gap: 12px;
+}
+
+.duo-logo-block .sOuBs {
+  width: 144px;
+}
+
+.duo-logo-block ._1C091 {
+  width: 46px;
+  opacity: 0.96;
+}
+
+.grammar-page-shell,
+.flash-shell,
+.flash-session-shell,
+.flash-results-shell,
+.vocab-shell,
+.dictionary-shell,
+.courses-shell,
+.speakai-shell,
+.reading-shell,
+.pronounce-shell,
+.writing-shell,
+.games-shell,
+.modern-shell,
+.listening-shell,
+.immersion-shell,
+.natives-shell,
+.translation-shell,
+.testlevel-shell,
+.community-shell,
+.music-shell,
+.profile-shell {
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 0, 0.08), transparent 22%),
+    radial-gradient(circle at bottom right, rgba(0, 194, 168, 0.08), transparent 26%),
+    #0f1720 !important;
+}
+
+.grammar-header-card,
+.flash-header-card,
+.vocab-head,
+.dictionary-head,
+.courses-header,
+.speakai-head,
+.reading-head,
+.pronounce-head,
+.writing-head,
+.games-head,
+.modern-head,
+.listening-head,
+.immersion-head,
+.natives-head,
+.translation-head,
+.testlevel-head,
+.community-head,
+.music-head,
+.profile-head {
+  border-radius: 30px !important;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.22) !important;
+}
+
+.duo-back-btn {
+  border-radius: 18px;
+  background: rgba(15, 23, 32, 0.22);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.18);
+}
+
+.duo-back-btn svg {
+  stroke-width: 2.4;
+}
+
+.module-guide-panel {
+  background:
+    radial-gradient(circle at top right, rgba(255, 122, 0, 0.10), transparent 24%),
+    linear-gradient(180deg, rgba(28, 42, 54, 0.98), rgba(15, 23, 32, 0.98));
+}
+
+@media (max-width: 1280px) {
+  .duo-home-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .duo-right-rail {
+    display: none;
+  }
+}
+
+@media (max-width: 840px) {
+  .duo-home-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .duo-left-sidebar {
+    position: static;
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .duo-sidebar-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .duo-center-panel {
+    padding: 18px 14px 28px;
+  }
+
+  .duo-current-card {
+    padding: 24px 18px;
+    border-radius: 24px;
+  }
+}
