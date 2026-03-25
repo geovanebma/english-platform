@@ -1,0 +1,583 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pedagogical Engines Documentation</title>
+    <style>
+      @font-face {
+        font-family: "DIN Round Pro";
+        src: url("../../fonts/dinroundpro_medi.otf") format("opentype");
+        font-weight: 500;
+      }
+
+      @font-face {
+        font-family: "DIN Round Pro";
+        src: url("../../fonts/dinroundpro_bold.otf") format("opentype");
+        font-weight: 700;
+      }
+
+      :root {
+        --engine-theme: #2bb7ff;
+        --engine-theme-dark: #148dcb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: #1f2a30;
+        font-family: "DIN Round Pro", sans-serif;
+        font-weight: 500;
+      }
+
+      .page {
+        width: min(1140px, calc(100vw - 40px));
+        margin: 28px auto 48px;
+      }
+
+      .hero {
+        border-radius: 28px;
+        padding: 28px 30px;
+        background: #ffffff;
+        border: 2px solid var(--engine-theme);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--engine-theme);
+        color: #ffffff;
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--engine-theme-dark);
+      }
+
+      h1 {
+        margin-top: 18px;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1.02;
+      }
+
+      .hero p {
+        margin: 14px 0 0;
+        color: #304047;
+        font-size: 1.02rem;
+        line-height: 1.6;
+        max-width: 920px;
+      }
+
+      .section-grid {
+        margin-top: 22px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        border-radius: 24px;
+        padding: 22px 24px;
+        background: #ffffff;
+        border: 2px solid var(--engine-theme);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .card h2 {
+        margin-bottom: 14px;
+        font-size: 1.5rem;
+      }
+
+      .card h3 {
+        margin-bottom: 10px;
+        font-size: 1.08rem;
+      }
+
+      .card p,
+      .card li {
+        color: #41535b;
+        line-height: 1.6;
+      }
+
+      .card strong {
+        color: #182126;
+      }
+
+      .list {
+        margin: 0;
+        padding-left: 20px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .pill {
+        padding: 9px 13px;
+        border-radius: 999px;
+        background: var(--engine-theme);
+        border: 2px solid var(--engine-theme);
+        color: #ffffff;
+        font-size: 0.92rem;
+      }
+
+      .flow {
+        display: grid;
+        gap: 14px;
+      }
+
+      .flow-item {
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: #ffffff;
+        border: 2px solid rgba(43, 183, 255, 0.28);
+      }
+
+      .flow-item strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .scene-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .scene-card {
+        border-radius: 24px;
+        overflow: hidden;
+        border: 2px solid var(--engine-theme);
+        background: #ffffff;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .scene-head {
+        padding: 14px 16px;
+        border-bottom: 2px solid rgba(43, 183, 255, 0.22);
+        background: #ffffff;
+      }
+
+      .scene-head strong {
+        display: block;
+        color: var(--engine-theme-dark);
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .scene-head span {
+        color: #5b6b72;
+        font-size: 0.92rem;
+      }
+
+      .scene-body {
+        padding: 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .mock-sidebar {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mock-engine-item {
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: #ffffff;
+        border: 2px solid rgba(43, 183, 255, 0.2);
+      }
+
+      .mock-engine-item strong {
+        display: block;
+        color: #182126;
+        margin-bottom: 4px;
+      }
+
+      .mock-engine-item p {
+        margin: 0;
+        color: #5b6b72;
+        font-size: 0.92rem;
+        line-height: 1.55;
+      }
+
+      .mock-chip {
+        width: fit-content;
+        border-radius: 999px;
+        padding: 7px 12px;
+        background: var(--engine-theme);
+        border: 2px solid var(--engine-theme);
+        color: #ffffff;
+        font-size: 0.84rem;
+      }
+
+      .mock-report {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mock-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mock-metric {
+        border-radius: 16px;
+        padding: 12px;
+        background: #ffffff;
+        border: 2px solid rgba(43, 183, 255, 0.2);
+      }
+
+      .mock-metric span {
+        display: block;
+        color: #5b6b72;
+        font-size: 0.82rem;
+      }
+
+      .mock-metric strong {
+        display: block;
+        margin-top: 4px;
+        color: #182126;
+        font-size: 1.15rem;
+      }
+
+      .mock-bar-row {
+        display: grid;
+        grid-template-columns: 110px 1fr 40px;
+        gap: 10px;
+        align-items: center;
+        color: #182126;
+      }
+
+      .mock-bar {
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(24, 33, 38, 0.1);
+        overflow: hidden;
+      }
+
+      .mock-bar > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--engine-theme);
+      }
+
+      .footer-note {
+        margin-top: 18px;
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: #ffffff;
+        border: 2px solid var(--engine-theme);
+        color: #304047;
+      }
+
+      @media (max-width: 900px) {
+        .page {
+          width: min(100vw - 24px, 1140px);
+          margin: 14px auto 26px;
+        }
+
+        .hero,
+        .card {
+          padding: 18px;
+        }
+
+        .section-grid,
+        .scene-grid,
+        .mock-metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .mock-bar-row {
+          grid-template-columns: 90px 1fr 36px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div class="eyebrow">Pedagogical Engines Documentation</div>
+        <h1>Motores PedagÃ³gicos da Plataforma</h1>
+        <p>
+          Esta documentaÃ§Ã£o reÃºne os mÃ³dulos transversais e menus laterais de apoio pedagÃ³gico do English Platform,
+          responsÃ¡veis por personalizaÃ§Ã£o, revisÃ£o inteligente, diagnÃ³stico, planejamento, retenÃ§Ã£o e leitura global
+          da evoluÃ§Ã£o do aluno.
+        </p>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>O que esta documentaÃ§Ã£o cobre</h2>
+          <div class="pill-row">
+            <span class="pill">Onboarding pedagÃ³gico</span>
+            <span class="pill">RevisÃ£o espaÃ§ada global</span>
+            <span class="pill">DiagnÃ³stico adaptativo</span>
+            <span class="pill">Plano semanal automÃ¡tico</span>
+            <span class="pill">Caderno de erros</span>
+            <span class="pill">RetenÃ§Ã£o 7/30 dias</span>
+            <span class="pill">RelatÃ³rios pedagÃ³gicos</span>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Papel desses motores</h2>
+          <p>
+            Diferente dos mÃ³dulos de conteÃºdo, estes motores atuam por trÃ¡s da experiÃªncia do aluno. Eles analisam
+            comportamento, priorizam revisÃ£o, detectam padrÃµes de erro, montam rotinas e apresentam uma visÃ£o global
+            do processo de aprendizagem.
+          </p>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Onboarding pedagÃ³gico</h2>
+          <ul class="list">
+            <li><strong>Objetivo:</strong> entender rapidamente o ponto de partida do aluno.</li>
+            <li><strong>Entradas:</strong> meta, perfil, tempo diÃ¡rio e teste rÃ¡pido inicial.</li>
+            <li><strong>SaÃ­da:</strong> trilha personalizada e mÃ³dulo recomendado.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>RevisÃ£o espaÃ§ada global</h2>
+          <ul class="list">
+            <li><strong>Objetivo:</strong> reunir itens frÃ¡geis de vÃ¡rios mÃ³dulos em uma mesma fila inteligente.</li>
+            <li><strong>Origem dos itens:</strong> Grammar, Flashcards, Vocabulary e outros mÃ³dulos integrados.</li>
+            <li><strong>FunÃ§Ã£o:</strong> evitar esquecimento e reforÃ§ar retenÃ§Ã£o entre contextos.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>DiagnÃ³stico adaptativo contÃ­nuo</h2>
+          <ul class="list">
+            <li><strong>Objetivo:</strong> ajustar dificuldade e foco com base em desempenho real.</li>
+            <li><strong>Leitura:</strong> skill score, recomendaÃ§Ã£o de mÃ³dulo e foco principal.</li>
+            <li><strong>Impacto:</strong> muda a recomendaÃ§Ã£o do que estudar a seguir.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Plano de estudo semanal automÃ¡tico</h2>
+          <ul class="list">
+            <li><strong>Objetivo:</strong> transformar meta do aluno em rotina de execuÃ§Ã£o.</li>
+            <li><strong>Base:</strong> objetivo, tempo disponÃ­vel e prioridades pedagÃ³gicas.</li>
+            <li><strong>SaÃ­da:</strong> agenda semanal com mÃ³dulos e foco por dia.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Sistema de erro recorrente</h2>
+          <ul class="list">
+            <li><strong>Objetivo:</strong> registrar padrÃµes pessoais como preposiÃ§Ã£o, ordem ou vocabulÃ¡rio.</li>
+            <li><strong>FunÃ§Ã£o:</strong> alimentar review futuro e dar visibilidade ao que mais trava o aluno.</li>
+            <li><strong>LigaÃ§Ã£o:</strong> conversa diretamente com Grammar, Writing e revisÃ£o global.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>RetenÃ§Ã£o de longo prazo (7/30 dias)</h2>
+          <ul class="list">
+            <li><strong>Objetivo:</strong> medir o que realmente ficou depois do estudo inicial.</li>
+            <li><strong>Estrutura:</strong> testes agendados em janelas futuras.</li>
+            <li><strong>Leitura:</strong> taxa de retenÃ§Ã£o, total de testes e evoluÃ§Ã£o no tempo.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>RelatÃ³rios pedagÃ³gicos avanÃ§ados</h2>
+          <ul class="list">
+            <li><strong>Objetivo:</strong> consolidar desempenho, hÃ¡bitos e recomendaÃ§Ãµes.</li>
+            <li><strong>Indicadores:</strong> pontos fortes, pontos fracos, mÃ³dulos mais produtivos e tendÃªncia geral.</li>
+            <li><strong>Uso:</strong> visÃ£o estratÃ©gica para aluno, produto e futura mentoria.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Fluxo conjunto</h2>
+          <div class="flow">
+            <div class="flow-item">
+              <strong>1. Coleta</strong>
+              <span>O aluno interage com mÃ³dulos como Grammar, Flashcards, Writing e Listening.</span>
+            </div>
+            <div class="flow-item">
+              <strong>2. Leitura pedagÃ³gica</strong>
+              <span>Os motores consolidam erros, retenÃ§Ã£o, habilidade, progresso e metas.</span>
+            </div>
+            <div class="flow-item">
+              <strong>3. AÃ§Ã£o</strong>
+              <span>As recomendaÃ§Ãµes alteram review, plano semanal, foco do aluno e prÃ³ximos passos.</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Cenas do Sistema</h2>
+        <p>
+          Abaixo estÃ£o representaÃ§Ãµes visuais das telas e painÃ©is que simbolizam os motores pedagÃ³gicos da plataforma,
+          recriados em HTML/CSS para documentaÃ§Ã£o.
+        </p>
+
+        <div class="scene-grid">
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>1. Menu lateral de motores</strong>
+              <span>VisÃ£o dos painÃ©is tÃ©cnicos/pedagÃ³gicos concentrados em uma mesma Ã¡rea.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-sidebar">
+                <div class="mock-engine-item">
+                  <strong>Onboarding pedagÃ³gico</strong>
+                  <p>Teste inicial, meta e trilha personalizada.</p>
+                </div>
+                <div class="mock-engine-item">
+                  <strong>RevisÃ£o espaÃ§ada global</strong>
+                  <p>Fila cruzada com itens frÃ¡geis de mÃºltiplos mÃ³dulos.</p>
+                </div>
+                <div class="mock-engine-item">
+                  <strong>RelatÃ³rios pedagÃ³gicos</strong>
+                  <p>Resumo avanÃ§ado de progresso, retenÃ§Ã£o e foco.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>2. Painel de revisÃ£o global</strong>
+              <span>Resumo de itens prioritÃ¡rios e origem dos reforÃ§os.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-chip">ReforÃ§o recomendado hoje</div>
+              <div class="mock-engine-item">
+                <strong>Grammar</strong>
+                <p>3 conceitos frÃ¡geis aguardando reforÃ§o.</p>
+              </div>
+              <div class="mock-engine-item">
+                <strong>Flashcards</strong>
+                <p>11 cards prioritÃ¡rios vindos das Ãºltimas sessÃµes.</p>
+              </div>
+              <div class="mock-engine-item">
+                <strong>Vocabulary</strong>
+                <p>5 palavras novas marcadas para retenÃ§Ã£o.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>3. DiagnÃ³stico e planejamento</strong>
+              <span>Foco principal do aluno e organizaÃ§Ã£o semanal automÃ¡tica.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-chip">Objetivo atual: ConversaÃ§Ã£o</div>
+              <div class="mock-engine-item">
+                <strong>Skill score dominante</strong>
+                <p>Vocabulary alto, Grammar mÃ©dio, Speaking em reforÃ§o.</p>
+              </div>
+              <div class="mock-engine-item">
+                <strong>PrÃ³ximo mÃ³dulo sugerido</strong>
+                <p>Speak With AI + Grammar review.</p>
+              </div>
+              <div class="mock-engine-item">
+                <strong>Plano da semana</strong>
+                <p>Segunda: Grammar | Quarta: Listening | Sexta: Speaking.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>4. RelatÃ³rio consolidado</strong>
+              <span>Resumo visual do desempenho pedagÃ³gico do aluno.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-report">
+                <div class="mock-metrics">
+                  <div class="mock-metric">
+                    <span>RetenÃ§Ã£o</span>
+                    <strong>82%</strong>
+                  </div>
+                  <div class="mock-metric">
+                    <span>Erros recorrentes</span>
+                    <strong>4</strong>
+                  </div>
+                  <div class="mock-metric">
+                    <span>Foco atual</span>
+                    <strong>Speaking</strong>
+                  </div>
+                </div>
+
+                <div class="mock-bar-row">
+                  <span>Grammar</span>
+                  <div class="mock-bar"><span style="width: 74%"></span></div>
+                  <strong>74</strong>
+                </div>
+                <div class="mock-bar-row">
+                  <span>Listening</span>
+                  <div class="mock-bar"><span style="width: 68%"></span></div>
+                  <strong>68</strong>
+                </div>
+                <div class="mock-bar-row">
+                  <span>Writing</span>
+                  <div class="mock-bar"><span style="width: 71%"></span></div>
+                  <strong>71</strong>
+                </div>
+                <div class="mock-bar-row">
+                  <span>Speaking</span>
+                  <div class="mock-bar"><span style="width: 59%"></span></div>
+                  <strong>59</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>ObservaÃ§Ãµes de ImplementaÃ§Ã£o</h2>
+        <ul class="list">
+          <li><strong>Escopo:</strong> esta documentaÃ§Ã£o centraliza os menus pedagÃ³gicos tÃ©cnicos da plataforma em um Ãºnico lugar.</li>
+          <li><strong>Fonte:</strong> usa a mesma famÃ­lia tipogrÃ¡fica local do projeto, <code>DIN Round Pro</code>.</li>
+          <li><strong>Finalidade:</strong> explicar como a plataforma se torna inteligente alÃ©m dos mÃ³dulos de conteÃºdo.</li>
+          <li><strong>Leitura estratÃ©gica:</strong> este conjunto Ã© importante para apresentar personalizaÃ§Ã£o e valor pedagÃ³gico ao produto.</li>
+        </ul>
+
+        <div class="footer-note">
+          Este documento resume os motores que tornam o English Platform uma experiÃªncia integrada, adaptativa e orientada
+          a retenÃ§Ã£o real do aluno.
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+

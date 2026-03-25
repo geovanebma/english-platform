@@ -2,8 +2,15 @@ import React from 'react' // <--- ADICIONE ESTA LINHA AQUI
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
+import './initial.css'
 // import { motion } from 'motion/react';
 import { motion } from 'framer-motion';
+import {
+  applyVocabularyUpdate,
+  clearLocalProgressDirty,
+  readLocalProgress,
+  writeLocalProgress,
+} from "./lib/progressLocal";
 import { 
   BookOpen, 
   CreditCard, 
@@ -43,6 +50,100 @@ const categories = [
   { id: 16, color: '#606160', label: 'Test your english level', icon: ClipboardCheck },
   { id: 17, color: '#333333', label: 'Community', icon: User },
 ];
+
+const originalFetch = window.fetch.bind(window);
+
+function createJsonResponse(payload, status = 200) {
+  return new Response(JSON.stringify(payload || {}), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+async function readRequestBody(init) {
+  if (!init?.body) return {};
+  if (typeof init.body === "string") {
+    try {
+      return JSON.parse(init.body);
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+window.fetch = async (input, init = {}) => {
+  const url = typeof input === "string" ? input : input?.url || "";
+  const method = String(init.method || input?.method || "GET").toUpperCase();
+
+  if (url.startsWith("/api/progress/my-vocabulary")) {
+    if (method === "POST") {
+      const payload = await readRequestBody(init);
+      const next = applyVocabularyUpdate(readLocalProgress(), payload);
+      writeLocalProgress(next);
+
+      try {
+        const res = await originalFetch(input, init);
+        if (res.ok) {
+          return res;
+        }
+        if (res.status !== 401) {
+          return res;
+        }
+      } catch {
+        // fallthrough
+      }
+
+      return createJsonResponse(next.my_vocabulary || {}, 200);
+    }
+  }
+
+  if (url.startsWith("/api/progress")) {
+    if (method === "GET") {
+      try {
+        const res = await originalFetch(input, init);
+        if (res.ok) {
+          res
+            .clone()
+            .json()
+            .then((data) => {
+              writeLocalProgress(data, { markDirty: false });
+            })
+            .catch(() => {
+              // no-op
+            });
+          return res;
+        }
+        if (res.status !== 401) {
+          return res;
+        }
+      } catch {
+        // fallthrough
+      }
+
+      return createJsonResponse(readLocalProgress(), 200);
+    }
+
+    if (method === "PUT") {
+      const payload = await readRequestBody(init);
+      writeLocalProgress(payload);
+
+      try {
+        const res = await originalFetch(input, init);
+        if (res.ok) {
+          clearLocalProgressDirty();
+        }
+        return res;
+      } catch {
+        // fallthrough
+      }
+
+      return createJsonResponse(payload, 200);
+    }
+  }
+
+  return originalFetch(input, init);
+};
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

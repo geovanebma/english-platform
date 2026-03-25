@@ -1,405 +1,365 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Heart, MessageSquare, Send, Flag, BellOff } from "lucide-react";
-import ModuleGuideButton from "./ModuleGuideButton";
-
-const YOU_ID = "you";
-
-const SEED_POSTS = [
-  {
-    id: "post_1",
-    author_id: "user_ana",
-    author_name: "Ana",
-    content: "Today I learned 12 new words with context sentences. Huge difference.",
-    created_at: "2026-03-05T12:15:00.000Z",
-    likes_by: ["user_caio"],
-    comments: [
-      {
-        id: "c_1",
-        author_id: "user_caio",
-        author_name: "Caio",
-        text: "Nice progress. Context helps a lot.",
-        created_at: "2026-03-05T13:00:00.000Z",
-      },
-    ],
-  },
-  {
-    id: "post_2",
-    author_id: "user_lu",
-    author_name: "Lu",
-    content: "Anyone wants to practice short speaking drills tonight?",
-    created_at: "2026-03-05T17:05:00.000Z",
-    likes_by: ["you", "user_ana"],
-    comments: [],
-  },
-  {
-    id: "post_3",
-    author_id: "user_noah",
-    author_name: "Noah",
-    content: "Tip: shadowing for 10 minutes a day improved my listening speed.",
-    created_at: "2026-03-06T07:30:00.000Z",
-    likes_by: [],
-    comments: [],
-  },
-];
-
-function ensureCommunity(progress) {
-  const data = progress || {};
-  if (!data.modules) data.modules = {};
-  if (!data.modules.community) {
-    data.modules.community = {
-      posts: [...SEED_POSTS],
-      muted_author_ids: [],
-      reported_post_ids: [],
-      total_posts: SEED_POSTS.length,
-      total_comments: SEED_POSTS.reduce((sum, post) => sum + post.comments.length, 0),
-      total_likes: SEED_POSTS.reduce((sum, post) => sum + post.likes_by.length, 0),
-      last_filter: "all",
-      last_sync: null,
-    };
-  }
-  if (!Array.isArray(data.modules.community.posts)) data.modules.community.posts = [...SEED_POSTS];
-  if (!Array.isArray(data.modules.community.muted_author_ids)) data.modules.community.muted_author_ids = [];
-  if (!Array.isArray(data.modules.community.reported_post_ids)) data.modules.community.reported_post_ids = [];
-  return data;
-}
-
-async function readProgress() {
-  const res = await fetch("/api/progress", { cache: "no-store" });
-  if (!res.ok) throw new Error("Falha ao ler progresso");
-  const parsed = await res.json();
-  return ensureCommunity(parsed);
-}
-
-async function writeProgress(nextProgress) {
-  const res = await fetch("/api/progress", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(nextProgress),
-  });
-  if (!res.ok) throw new Error("Falha ao salvar progresso");
-  const parsed = await res.json();
-  return ensureCommunity(parsed);
-}
-
-function formatDate(isoDate) {
-  try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(isoDate));
-  } catch {
-    return isoDate;
-  }
-}
-
-export default function Community({ setCurrentView, color = "#333333" }) {
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-  const [error, setError] = useState("");
-  const [feed, setFeed] = useState([]);
-  const [filter, setFilter] = useState("all");
-  const [composer, setComposer] = useState("");
-  const [commentDraft, setCommentDraft] = useState({});
-  const [mutedAuthorIds, setMutedAuthorIds] = useState([]);
-  const [reportedPostIds, setReportedPostIds] = useState([]);
-  const [stats, setStats] = useState({ total_posts: 0, total_comments: 0, total_likes: 0 });
-
-  const persistState = async (
-    nextPosts,
-    nextMuted = mutedAuthorIds,
-    nextReported = reportedPostIds,
-    nextFilter = filter
-  ) => {
-    setSyncing(true);
-    try {
-      const progress = await readProgress();
-      const totalPosts = nextPosts.length;
-      const totalComments = nextPosts.reduce(
-        (sum, post) => sum + (Array.isArray(post.comments) ? post.comments.length : 0),
-        0
-      );
-      const totalLikes = nextPosts.reduce(
-        (sum, post) => sum + (Array.isArray(post.likes_by) ? post.likes_by.length : 0),
-        0
-      );
-
-      progress.modules.community = {
-        posts: nextPosts,
-        muted_author_ids: nextMuted,
-        reported_post_ids: nextReported,
-        total_posts: totalPosts,
-        total_comments: totalComments,
-        total_likes: totalLikes,
-        last_filter: nextFilter,
-        last_sync: new Date().toISOString(),
-      };
-
-      const saved = await writeProgress(progress);
-      const block = saved.modules.community;
-      setFeed(block.posts);
-      setMutedAuthorIds(block.muted_author_ids);
-      setReportedPostIds(block.reported_post_ids);
-      setFilter(block.last_filter || "all");
-      setStats({
-        total_posts: Number(block.total_posts || 0),
-        total_comments: Number(block.total_comments || 0),
-        total_likes: Number(block.total_likes || 0),
-      });
-      setError("");
-    } catch {
-      setError("Nao foi possivel sincronizar o feed agora.");
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const progress = await readProgress();
-        if (!mounted) return;
-        const block = progress.modules.community;
-        setFeed(block.posts);
-        setMutedAuthorIds(block.muted_author_ids);
-        setReportedPostIds(block.reported_post_ids);
-        setFilter(block.last_filter || "all");
-        setStats({
-          total_posts: Number(block.total_posts || 0),
-          total_comments: Number(block.total_comments || 0),
-          total_likes: Number(block.total_likes || 0),
-        });
-      } catch {
-        if (!mounted) return;
-        setFeed([...SEED_POSTS]);
-        setError("Falha ao carregar feed, usando modo local temporario.");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const visiblePosts = useMemo(() => {
-    const notMuted = feed.filter((post) => !mutedAuthorIds.includes(post.author_id));
-    if (filter === "mine") return notMuted.filter((post) => post.author_id === YOU_ID);
-    if (filter === "liked") return notMuted.filter((post) => post.likes_by.includes(YOU_ID));
-    if (filter === "popular") {
-      return [...notMuted].sort((a, b) => b.likes_by.length - a.likes_by.length);
-    }
-    return [...notMuted].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  }, [feed, mutedAuthorIds, filter]);
-
-  const submitPost = async () => {
-    const text = composer.trim();
-    if (!text) return;
-    const nextPosts = [
-      {
-        id: `post_${Date.now()}`,
-        author_id: YOU_ID,
-        author_name: "You",
-        content: text,
-        created_at: new Date().toISOString(),
-        likes_by: [],
-        comments: [],
-      },
-      ...feed,
-    ];
-    setComposer("");
-    await persistState(nextPosts);
-  };
-
-  const toggleLike = async (postId) => {
-    const nextPosts = feed.map((post) => {
-      if (post.id !== postId) return post;
-      const alreadyLiked = post.likes_by.includes(YOU_ID);
-      return {
-        ...post,
-        likes_by: alreadyLiked
-          ? post.likes_by.filter((id) => id !== YOU_ID)
-          : [...post.likes_by, YOU_ID],
-      };
-    });
-    await persistState(nextPosts);
-  };
-
-  const sendComment = async (postId) => {
-    const text = (commentDraft[postId] || "").trim();
-    if (!text) return;
-    const nextPosts = feed.map((post) => {
-      if (post.id !== postId) return post;
-      return {
-        ...post,
-        comments: [
-          ...(post.comments || []),
-          {
-            id: `c_${Date.now()}`,
-            author_id: YOU_ID,
-            author_name: "You",
-            text,
-            created_at: new Date().toISOString(),
-          },
-        ],
-      };
-    });
-    setCommentDraft((prev) => ({ ...prev, [postId]: "" }));
-    await persistState(nextPosts);
-  };
-
-  const toggleReport = async (postId) => {
-    const nextReported = reportedPostIds.includes(postId)
-      ? reportedPostIds.filter((id) => id !== postId)
-      : [...reportedPostIds, postId];
-    await persistState(feed, mutedAuthorIds, nextReported);
-  };
-
-  const muteAuthor = async (authorId) => {
-    if (authorId === YOU_ID) return;
-    if (mutedAuthorIds.includes(authorId)) return;
-    const nextMuted = [...mutedAuthorIds, authorId];
-    await persistState(feed, nextMuted, reportedPostIds);
-  };
-
-  const onFilterChange = async (nextFilter) => {
-    setFilter(nextFilter);
-    await persistState(feed, mutedAuthorIds, reportedPostIds, nextFilter);
-  };
-
-  return (
-    <section className="community-shell" style={{ "--community-theme": color }}>
-      <header className="community-head">
-        <button type="button" className="duo-back-btn" onClick={() => setCurrentView("initial")}>
-          <ArrowLeft size={18} />
-          Voltar
-        </button>
-        <div>
-          <div className="community-kicker">COMMUNITY</div>
-          <h1>Community Feed</h1>
-        </div>
-              <ModuleGuideButton moduleKey="community" color={color} />
-</header>
-
-      <section className="community-composer-card">
-        <div className="community-top-row">
-          <h2>Compartilhe progresso rapido</h2>
-          <div className="community-filter-wrap">
-            <label htmlFor="community-filter">Filtro</label>
-            <select
-              id="community-filter"
-              value={filter}
-              onChange={(e) => onFilterChange(e.target.value)}
-            >
-              <option value="all">Recentes</option>
-              <option value="popular">Mais curtidos</option>
-              <option value="liked">Curtidos por mim</option>
-              <option value="mine">Meus posts</option>
-            </select>
-          </div>
-        </div>
-
-        <textarea
-          value={composer}
-          onChange={(e) => setComposer(e.target.value)}
-          placeholder="Escreva uma conquista, duvida ou dica de estudo..."
-          rows={3}
-        />
-
-        <div className="community-composer-footer">
-          <div className="community-stats">
-            <span>Posts: {stats.total_posts}</span>
-            <span>Comentarios: {stats.total_comments}</span>
-            <span>Curtidas: {stats.total_likes}</span>
-          </div>
-          <button type="button" className="community-primary-btn" onClick={submitPost}>
-            <Send size={16} />
-            Publicar
-          </button>
-        </div>
-      </section>
-
-      {error ? <p className="community-error">{error}</p> : null}
-      {loading ? <p className="community-loading">Carregando feed...</p> : null}
-      {syncing ? <p className="community-syncing">Sincronizando interacoes...</p> : null}
-
-      <section className="community-feed">
-        {visiblePosts.length === 0 && !loading ? (
-          <article className="community-empty">Nenhum post encontrado para este filtro.</article>
-        ) : null}
-
-        {visiblePosts.map((post) => {
-          const isReported = reportedPostIds.includes(post.id);
-          const isMuted = mutedAuthorIds.includes(post.author_id);
-          const isLiked = post.likes_by.includes(YOU_ID);
-
-          return (
-            <article key={post.id} className="community-post-card">
-              <header className="community-post-head">
-                <div>
-                  <strong>{post.author_name}</strong>
-                  <span>{formatDate(post.created_at)}</span>
-                </div>
-                <div className="community-post-moderation">
-                  <button type="button" onClick={() => toggleReport(post.id)}>
-                    <Flag size={14} />
-                    {isReported ? "Reportado" : "Reportar"}
-                  </button>
-                  <button type="button" onClick={() => muteAuthor(post.author_id)} disabled={isMuted}>
-                    <BellOff size={14} />
-                    {isMuted ? "Silenciado" : "Silenciar"}
-                  </button>
-                </div>
-              </header>
-
-              <p className="community-post-content">{post.content}</p>
-
-              <footer className="community-post-actions">
-                <button
-                  type="button"
-                  className={isLiked ? "is-on" : ""}
-                  onClick={() => toggleLike(post.id)}
-                >
-                  <Heart size={16} />
-                  {post.likes_by.length}
-                </button>
-                <span>
-                  <MessageSquare size={16} />
-                  {post.comments.length}
-                </span>
-              </footer>
-
-              <div className="community-comment-list">
-                {post.comments.map((comment) => (
-                  <div key={comment.id} className="community-comment-item">
-                    <strong>{comment.author_name}:</strong>
-                    <p>{comment.text}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="community-comment-input">
-                <input
-                  type="text"
-                  value={commentDraft[post.id] || ""}
-                  onChange={(e) =>
-                    setCommentDraft((prev) => ({ ...prev, [post.id]: e.target.value }))
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") sendComment(post.id);
-                  }}
-                  placeholder="Comentar..."
-                />
-                <button type="button" onClick={() => sendComment(post.id)}>
-                  <Send size={14} />
-                </button>
-              </div>
-            </article>
-          );
-        })}
-      </section>
-    </section>
-  );
-}
+import React, { useEffect, useMemo, useState } from "react";
+import { getUiLabel } from "../lib/uiLabels";
+import { ArrowLeft, Heart, MessageSquare, Send, Flag, BellOff, ImagePlus, RefreshCw, Bell } from "lucide-react";
+import ModuleGuideButton from "./ModuleGuideButton";
+
+function getLocale() {
+  return window.__uiLocale || "pt-BR";
+}
+
+function formatDate(isoDate) {
+  try {
+    return new Intl.DateTimeFormat(getLocale(), {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(isoDate));
+  } catch {
+    return isoDate;
+  }
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function isSpamContent(text, posts, authorId) {
+  const normalized = String(text || "").trim().toLowerCase();
+  if (!normalized) return getUiLabel("community.error.empty", "Empty content.");
+  if (normalized.length < 6) {
+    return getUiLabel("community.error.short", "Write something a little more complete before publishing.");
+  }
+  const recentOwn = posts.filter((post) => post.author_id === authorId).slice(0, 3);
+  if (recentOwn.some((post) => String(post.content || "").trim().toLowerCase() === normalized)) {
+    return getUiLabel("community.error.duplicate", "Repeated message detected. Try varying the content.");
+  }
+  return "";
+}
+
+export default function Community({ setCurrentView, color = "#333333" }) {
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [feed, setFeed] = useState([]);
+  const [filter, setFilter] = useState("all");
+  const [composer, setComposer] = useState("");
+  const [composerMedia, setComposerMedia] = useState("");
+  const [commentDraft, setCommentDraft] = useState({});
+  const [mutedAuthorKeys, setMutedAuthorKeys] = useState([]);
+  const [reportedPostIds, setReportedPostIds] = useState([]);
+  const [stats, setStats] = useState({ total_posts: 0, total_comments: 0, total_likes: 0 });
+  const [viewerId, setViewerId] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ page: 1, total_pages: 1, total: 0, has_more: false, filter: "all" });
+  const [notifications, setNotifications] = useState({ items: [], unread_count: 0 });
+
+  const applyPayload = (payload, append = false) => {
+    const nextPosts = Array.isArray(payload?.posts) ? payload.posts : [];
+    setFeed((prev) => (append ? [...prev, ...nextPosts] : nextPosts));
+    setMutedAuthorKeys(Array.isArray(payload?.muted_author_keys) ? payload.muted_author_keys : []);
+    setReportedPostIds(Array.isArray(payload?.reported_post_ids) ? payload.reported_post_ids : []);
+    setStats(payload?.stats || { total_posts: 0, total_comments: 0, total_likes: 0 });
+    setViewerId(payload?.viewer_id || "");
+    setPagination(payload?.pagination || { page: 1, total_pages: 1, total: 0, has_more: false, filter: "all" });
+    setNotifications(payload?.notifications || { items: [], unread_count: 0 });
+  };
+
+  const loadFeed = async (nextPage = 1, nextFilter = filter, append = false) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/community/feed?page=${nextPage}&limit=8&filter=${encodeURIComponent(nextFilter)}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("feed");
+      applyPayload(await res.json(), append);
+      setPage(nextPage);
+      setError("");
+    } catch {
+      setError(getUiLabel("community.feed_error", "Could not load the live feed right now."));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadFeed(1, filter, false);
+  }, []);
+
+  const visiblePosts = useMemo(() => {
+    const notMuted = feed.filter((post) => !mutedAuthorKeys.includes(post.author_id));
+    if (filter === "mine") return notMuted.filter((post) => post.author_id === viewerId);
+    if (filter === "liked") return notMuted.filter((post) => post.liked_by_me);
+    if (filter === "popular") return [...notMuted].sort((a, b) => Number(b.like_count || 0) - Number(a.like_count || 0));
+    return [...notMuted].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }, [feed, mutedAuthorKeys, filter, viewerId]);
+
+  const submitPost = async () => {
+    const text = composer.trim();
+    const spamReason = isSpamContent(text, feed, viewerId);
+    if (spamReason) {
+      setError(spamReason);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/community/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: text, media_url: composerMedia }),
+      });
+      if (!res.ok) throw new Error("post");
+      applyPayload(await res.json());
+      setComposer("");
+      setComposerMedia("");
+      setError("");
+    } catch {
+      setError(getUiLabel("community.error.sync", "Could not sync the feed right now."));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleLike = async (postId) => {
+    try {
+      const res = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/like`, { method: "POST" });
+      if (!res.ok) throw new Error("like");
+      applyPayload(await res.json());
+    } catch {
+      setError(getUiLabel("community.error.sync", "Could not sync the feed right now."));
+    }
+  };
+
+  const sendComment = async (postId) => {
+    const text = String(commentDraft[postId] || "").trim();
+    const spamReason = isSpamContent(text, feed, viewerId);
+    if (spamReason) {
+      setError(spamReason);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error("comment");
+      applyPayload(await res.json());
+      setCommentDraft((prev) => ({ ...prev, [postId]: "" }));
+    } catch {
+      setError(getUiLabel("community.error.sync", "Could not sync the feed right now."));
+    }
+  };
+
+  const reportPost = async (postId) => {
+    try {
+      const res = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: "content" }),
+      });
+      if (!res.ok) throw new Error("report");
+      applyPayload(await res.json());
+    } catch {
+      setError(getUiLabel("community.error.sync", "Could not sync the feed right now."));
+    }
+  };
+
+  const muteAuthor = async (authorKey) => {
+    try {
+      const res = await fetch(`/api/community/users/${encodeURIComponent(authorKey)}/mute`, { method: "POST" });
+      if (!res.ok) throw new Error("mute");
+      applyPayload(await res.json());
+    } catch {
+      setError(getUiLabel("community.error.sync", "Could not sync the feed right now."));
+    }
+  };
+
+  const attachMedia = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setComposerMedia(String(dataUrl));
+    } catch {
+      setError(getUiLabel("community.error.image", "Could not load the image."));
+    }
+  };
+
+  return (
+    <section className="community-shell" style={{ "--community-theme": color }}>
+      <header className="community-head">
+        <button type="button" className="duo-back-btn" onClick={() => setCurrentView("initial")}>
+          <ArrowLeft size={18} />
+          {getUiLabel("common.back", "Back")}
+        </button>
+        <div>
+          <div className="community-kicker">{getUiLabel("community.kicker", "COMMUNITY")}</div>
+          <h1>{getUiLabel("module.community", "Community")}</h1>
+          <p style={{ color: "#c7d9e6", marginTop: 6 }}>{getUiLabel("community.real_backend", "Multi-user cloud feed")}</p>
+        </div>
+        <ModuleGuideButton moduleKey="community" color={color} />
+      </header>
+
+      <section className="community-composer-card">
+        <div className="community-top-row">
+          <h2>{getUiLabel("community.share_quick", "Share quick progress")}</h2>
+          <div className="community-filter-wrap">
+            <label htmlFor="community-filter">{getUiLabel("community.filter", "Filter")}</label>
+            <select id="community-filter" value={filter} onChange={(e) => { const nextFilter = e.target.value; setFilter(nextFilter); setFeed([]); void loadFeed(1, nextFilter, false); }}>
+              <option value="all">{getUiLabel("community.filter.recent", "Recent")}</option>
+              <option value="popular">{getUiLabel("community.filter.popular", "Most liked")}</option>
+              <option value="liked">{getUiLabel("community.filter.liked", "Liked by me")}</option>
+              <option value="mine">{getUiLabel("community.filter.mine", "My posts")}</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="community-toolbar-row">
+          <button type="button" className="community-secondary-btn" onClick={() => void loadFeed(1, filter, false)}>
+            <RefreshCw size={15} /> {getUiLabel("community.refresh", "Refresh")}
+          </button>
+          <div className="community-notification-strip">
+            <span>{getUiLabel("community.posts", "Posts")}: {stats.total_posts}</span>
+            <span>{getUiLabel("community.comments", "Comments")}: {stats.total_comments}</span>
+            <span>{getUiLabel("community.likes", "Likes")}: {stats.total_likes}</span>
+            <span><Bell size={14} style={{ verticalAlign: "middle" }} /> {getUiLabel("community.unread", "Unread")}: {notifications.unread_count || 0}</span>
+          </div>
+        </div>
+
+        <textarea
+          value={composer}
+          onChange={(e) => setComposer(e.target.value)}
+          placeholder={getUiLabel("community.placeholder", "Write an achievement, question, or study tip...")}
+          rows={3}
+        />
+
+        <div className="community-composer-footer">
+          <div className="community-stats">
+            <span>{getUiLabel("community.real_backend", "Multi-user cloud feed")}</span>
+          </div>
+          <div className="community-composer-actions">
+            <label className="community-upload-btn">
+              <ImagePlus size={16} />
+              {getUiLabel("community.media", "Media")}
+              <input type="file" accept="image/*" onChange={attachMedia} hidden />
+            </label>
+            <button type="button" className="community-primary-btn" onClick={() => void submitPost()} disabled={submitting}>
+              <Send size={16} />
+              {submitting ? getUiLabel("admin.loading", "Loading...") : getUiLabel("community.publish", "Publish")}
+            </button>
+          </div>
+        </div>
+        {composerMedia ? <img src={composerMedia} alt={getUiLabel("community.preview", "Preview")} className="community-media-preview" /> : null}
+      </section>
+
+      {error ? <p className="community-error">{error}</p> : null}
+      {loading ? <p className="community-loading">{getUiLabel("community.loading", "Loading feed...")}</p> : null}
+      <section className="community-composer-card" style={{ marginTop: 14, marginBottom: 18 }}>
+        <div className="community-top-row">
+          <h2>{getUiLabel("community.notifications", "Notifications")}</h2>
+          <button type="button" className="community-secondary-btn" onClick={async () => {
+            try {
+              const res = await fetch("/api/community/notifications/read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: (notifications.items || []).filter((item) => !item.read_at).map((item) => item.id) }) });
+              if (!res.ok) throw new Error("read");
+              setNotifications(await res.json());
+            } catch {
+              setError(getUiLabel("community.error.sync", "Could not sync the feed right now."));
+            }
+          }}>
+            {getUiLabel("community.mark_read", "Mark as read")}
+          </button>
+        </div>
+        <div className="community-comment-list">
+          {(notifications.items || []).length ? (notifications.items || []).map((item) => (
+            <div key={item.id} className="community-comment-item">
+              <strong>{item.actor_name || getUiLabel("community.author_you", "You")}</strong>
+              <p>{item.message}</p>
+            </div>
+          )) : <p style={{ color: "#c7d9e6" }}>{getUiLabel("community.no_notifications", "No new notifications.")}</p>}
+        </div>
+      </section>
+
+      <section className="community-feed">
+        {visiblePosts.length === 0 && !loading ? <article className="community-empty">{getUiLabel("community.empty_real", "There are no posts in this filter yet.")}</article> : null}
+
+        {visiblePosts.map((post) => {
+          const isReported = reportedPostIds.includes(post.id);
+          const isMuted = mutedAuthorKeys.includes(post.author_id);
+
+          return (
+            <article key={post.id} className="community-post-card">
+              <header className="community-post-head">
+                <div>
+                  <strong>{post.author_name}</strong>
+                  <span>{formatDate(post.created_at)}</span>
+                </div>
+                <div className="community-post-moderation">
+                  <button type="button" onClick={() => void reportPost(post.id)}>
+                    <Flag size={14} />
+                    {isReported ? getUiLabel("community.reported", "Reported") : getUiLabel("community.report", "Report")}
+                  </button>
+                  <button type="button" onClick={() => void muteAuthor(post.author_id)} disabled={isMuted || post.author_id === viewerId}>
+                    <BellOff size={14} />
+                    {isMuted ? getUiLabel("community.muted", "Muted") : getUiLabel("community.mute", "Mute")}
+                  </button>
+                </div>
+              </header>
+
+              <p className="community-post-content">{post.content}</p>
+              {post.media_url ? <img src={post.media_url} alt={getUiLabel("community.media", "Media")} className="community-post-media" /> : null}
+
+              <footer className="community-post-actions">
+                <button type="button" className={post.liked_by_me ? "is-on" : ""} onClick={() => void toggleLike(post.id)}>
+                  <Heart size={16} />
+                  {post.like_count}
+                </button>
+                <span>
+                  <MessageSquare size={16} />
+                  {post.comment_count}
+                </span>
+              </footer>
+
+              <div className="community-comment-list">
+                {(post.comments || []).map((comment) => (
+                  <div key={comment.id} className="community-comment-item">
+                    <strong>{comment.author_name}:</strong>
+                    <p>{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="community-comment-input">
+                <input
+                  type="text"
+                  value={commentDraft[post.id] || ""}
+                  onChange={(e) => setCommentDraft((prev) => ({ ...prev, [post.id]: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void sendComment(post.id);
+                  }}
+                  placeholder={getUiLabel("community.comment_placeholder", "Comment...")}
+                />
+                <button type="button" onClick={() => void sendComment(post.id)}>
+                  <Send size={14} />
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      <div className="community-toolbar-row" style={{ marginTop: 18 }}>
+        <span>{getUiLabel("community.page_info", "Page {page} of {total}").replace("{page}", String(pagination.page || 1)).replace("{total}", String(pagination.total_pages || 1))}</span>
+        {pagination.has_more ? (
+          <button type="button" className="community-secondary-btn" onClick={() => void loadFeed((page || 1) + 1, filter, true)}>
+            <RefreshCw size={15} /> {getUiLabel("community.load_more", "Load more")}
+          </button>
+        ) : null}
+      </div>
+    </section>
+  );
+}

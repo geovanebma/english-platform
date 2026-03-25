@@ -7,6 +7,7 @@ import react from "@vitejs/plugin-react";
 function progressApiPlugin() {
   const configDir = path.dirname(fileURLToPath(import.meta.url));
   const progressPath = path.resolve(configDir, "progress.json");
+  const authApiBase = process.env.AUTH_API_BASE || "http://localhost:4000";
 
   const ensureProgressShape = (progress) => {
     const data = progress || {};
@@ -333,13 +334,46 @@ function progressApiPlugin() {
     return normalized;
   };
 
+  const readRequestBody = async (req) =>
+    await new Promise((resolve, reject) => {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => resolve(body));
+      req.on("error", reject);
+    });
+
+  const tryCloudProgress = async (req, method, body = null) => {
+    try {
+      const headers = {
+        Accept: "application/json",
+      };
+      if (req.headers.cookie) headers.Cookie = req.headers.cookie;
+      if (body !== null) headers["Content-Type"] = "application/json";
+
+      const targetPath = req.url === "/my-vocabulary" ? "/api/progress/my-vocabulary" : "/api/progress";
+      const response = await fetch(`${authApiBase}${targetPath}`, {
+        method,
+        headers,
+        body,
+      });
+
+      if (!response.ok) return null;
+      return await response.json();
+    } catch {
+      return null;
+    }
+  };
+
   return {
     name: "progress-api-plugin",
     configureServer(server) {
       server.middlewares.use("/api/progress", async (req, res) => {
         try {
           if (req.method === "GET") {
-            const progress = await readProgress();
+            const cloud = await tryCloudProgress(req, "GET");
+            const progress = cloud ? ensureProgressShape(cloud) : await readProgress();
             res.statusCode = 200;
             res.setHeader("Content-Type", "application/json");
             res.end(JSON.stringify(progress));
@@ -347,71 +381,67 @@ function progressApiPlugin() {
           }
 
           if (req.method === "PUT") {
-            let body = "";
-            req.on("data", (chunk) => {
-              body += chunk;
-            });
-            req.on("end", async () => {
-              try {
-                const parsed = body ? JSON.parse(body) : {};
-                const saved = await writeProgress(parsed);
-                res.statusCode = 200;
-                res.setHeader("Content-Type", "application/json");
-                res.end(JSON.stringify(saved));
-              } catch {
-                res.statusCode = 400;
-                res.setHeader("Content-Type", "application/json");
-                res.end(JSON.stringify({ error: "Invalid JSON payload" }));
-              }
-            });
+            const body = await readRequestBody(req);
+            try {
+              const parsed = body ? JSON.parse(body) : {};
+              const cloud = await tryCloudProgress(req, "PUT", JSON.stringify(parsed));
+              const saved = cloud ? ensureProgressShape(cloud) : await writeProgress(parsed);
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify(saved));
+            } catch {
+              res.statusCode = 400;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: "Invalid JSON payload" }));
+            }
             return;
           }
 
           if (req.method === "POST" && req.url === "/my-vocabulary") {
-            let body = "";
-            req.on("data", (chunk) => {
-              body += chunk;
-            });
-            req.on("end", async () => {
-              try {
-                const payload = body ? JSON.parse(body) : {};
-                const learnedIds = Array.isArray(payload.learned_word_ids)
-                  ? payload.learned_word_ids.map(Number).filter(Number.isFinite).sort((a, b) => a - b)
-                  : [];
-                const learnedCsv =
-                  typeof payload.learned_words_csv === "string" ? payload.learned_words_csv : "";
-
-                const progress = await readProgress();
-                const block = {
-                  ...progress.my_vocabulary,
-                  learned_word_ids: learnedIds,
-                  learned_word_ranks: learnedIds,
-                  learned_words: learnedIds.length,
-                  saved_words: learnedIds.length,
-                  learned_words_csv: learnedCsv,
-                  last_page: Number(payload.last_page || progress.my_vocabulary.last_page || 1),
-                  last_sort: payload.last_sort || progress.my_vocabulary.last_sort || "rank",
-                  last_filter: payload.last_filter || progress.my_vocabulary.last_filter || "both",
-                  last_search:
-                    typeof payload.last_search === "string"
-                      ? payload.last_search
-                      : progress.my_vocabulary.last_search || "",
-                };
-
-                progress.my_vocabulary = { ...block };
-                if (!progress.modules) progress.modules = {};
-                progress.modules.my_vocabulary = { ...block };
-
-                const saved = await writeProgress(progress);
+            const body = await readRequestBody(req);
+            try {
+              const payload = body ? JSON.parse(body) : {};
+              const cloud = await tryCloudProgress(req, "POST", JSON.stringify(payload));
+              if (cloud) {
                 res.statusCode = 200;
                 res.setHeader("Content-Type", "application/json");
-                res.end(JSON.stringify(saved.my_vocabulary));
-              } catch (error) {
-                res.statusCode = 400;
-                res.setHeader("Content-Type", "application/json");
-                res.end(JSON.stringify({ error: "Invalid JSON payload", detail: error.message }));
+                res.end(JSON.stringify(cloud));
+                return;
               }
-            });
+
+              const learnedIds = Array.isArray(payload.learned_word_ids)
+                ? payload.learned_word_ids.map(Number).filter(Number.isFinite).sort((a, b) => a - b)
+                : [];
+              const learnedCsv = typeof payload.learned_words_csv === "string" ? payload.learned_words_csv : "";
+
+              const progress = await readProgress();
+              const block = {
+                ...progress.my_vocabulary,
+                learned_word_ids: learnedIds,
+                learned_word_ranks: learnedIds,
+                learned_words: learnedIds.length,
+                saved_words: learnedIds.length,
+                learned_words_csv: learnedCsv,
+                last_page: Number(payload.last_page || progress.my_vocabulary.last_page || 1),
+                last_sort: payload.last_sort || progress.my_vocabulary.last_sort || "rank",
+                last_filter: payload.last_filter || progress.my_vocabulary.last_filter || "both",
+                last_search:
+                  typeof payload.last_search === "string" ? payload.last_search : progress.my_vocabulary.last_search || "",
+              };
+
+              progress.my_vocabulary = { ...block };
+              if (!progress.modules) progress.modules = {};
+              progress.modules.my_vocabulary = { ...block };
+
+              const saved = await writeProgress(progress);
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify(saved.my_vocabulary));
+            } catch (error) {
+              res.statusCode = 400;
+              res.setHeader("Content-Type", "application/json");
+              res.end(JSON.stringify({ error: "Invalid JSON payload", detail: error.message }));
+            }
             return;
           }
 
@@ -430,4 +460,45 @@ function progressApiPlugin() {
 
 export default defineConfig({
   plugins: [react(), progressApiPlugin()],
+  test: {
+    environment: "jsdom",
+    setupFiles: "./src/test/setupTests.js",
+    globals: true,
+  },
+  server: {
+    proxy: {
+      "/api/auth": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/api/subscription": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/api/onboarding": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/api/profile": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/api/dictionary": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/api/telemetry": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+      "/api/i18n": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+      },
+    },
+  },
 });
+
+
+
+

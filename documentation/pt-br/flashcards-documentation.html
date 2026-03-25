@@ -1,0 +1,689 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flashcards Documentation</title>
+    <style>
+      @font-face {
+        font-family: "DIN Round Pro";
+        src: url("../../fonts/dinroundpro_medi.otf") format("opentype");
+        font-weight: 500;
+      }
+
+      @font-face {
+        font-family: "DIN Round Pro";
+        src: url("../../fonts/dinroundpro_bold.otf") format("opentype");
+        font-weight: 700;
+      }
+
+      :root {
+        --flash-theme: #feb023;
+        --flash-theme-shadow: #d68c0f;
+        --surface: #131f24;
+        --surface-2: #0b1b23;
+        --border: rgba(255, 255, 255, 0.1);
+        --text: #ffffff;
+        --muted: rgba(255, 255, 255, 0.72);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "DIN Round Pro", sans-serif;
+        font-weight: 500;
+        background: #ffffff;
+        color: #1f2a30;
+      }
+
+      .page {
+        width: min(1100px, calc(100vw - 40px));
+        margin: 28px auto 48px;
+      }
+
+      .hero {
+        border-radius: 28px;
+        padding: 28px 30px;
+        background: #ffffff;
+        border: 2px solid var(--flash-theme);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--flash-theme);
+        color: #ffffff;
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--flash-theme);
+      }
+
+      h1 {
+        margin-top: 18px;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1.02;
+      }
+
+      .hero p {
+        margin: 14px 0 0;
+        color: #304047;
+        font-size: 1.02rem;
+        line-height: 1.6;
+        max-width: 840px;
+      }
+
+      .grid {
+        margin-top: 22px;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 18px;
+      }
+
+      .card {
+        border-radius: 24px;
+        padding: 22px 24px;
+        background: #ffffff;
+        border: 2px solid var(--flash-theme);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .card h2 {
+        margin-bottom: 14px;
+        font-size: 1.5rem;
+      }
+
+      .card h3 {
+        margin-bottom: 10px;
+        font-size: 1.08rem;
+      }
+
+      .card p,
+      .card li {
+        color: #41535b;
+        line-height: 1.6;
+      }
+
+      .card strong {
+        color: #182126;
+      }
+
+      .list {
+        margin: 0;
+        padding-left: 20px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .pill {
+        padding: 9px 13px;
+        border-radius: 999px;
+        background: var(--flash-theme);
+        border: 2px solid var(--flash-theme);
+        color: #ffffff;
+        font-size: 0.92rem;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 14px;
+      }
+
+      .timeline-item {
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: #ffffff;
+        border: 2px solid rgba(254, 176, 35, 0.28);
+      }
+
+      .timeline-item strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .scene-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .scene-card {
+        border-radius: 24px;
+        overflow: hidden;
+        border: 2px solid var(--flash-theme);
+        background: #ffffff;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .scene-head {
+        padding: 14px 16px;
+        border-bottom: 2px solid rgba(254, 176, 35, 0.22);
+        background: #ffffff;
+      }
+
+      .scene-head strong {
+        display: block;
+        color: var(--flash-theme);
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .scene-head span {
+        color: #5b6b72;
+        font-size: 0.92rem;
+      }
+
+      .scene-body {
+        padding: 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .mock-path {
+        display: grid;
+        gap: 16px;
+        justify-items: center;
+        padding: 4px 0;
+      }
+
+      .mock-node-wrap {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+
+      .mock-badge {
+        border-radius: 14px;
+        padding: 8px 14px;
+        background: var(--flash-theme);
+        color: #ffffff;
+        font-size: 0.88rem;
+        font-weight: 700;
+        border: 2px solid var(--flash-theme);
+      }
+
+      .mock-node {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 1.55rem;
+        background: var(--flash-theme);
+        box-shadow: inset 0 -8px 0 var(--flash-theme-shadow);
+      }
+
+      .mock-node.ring {
+        box-shadow: inset 0 -8px 0 var(--flash-theme-shadow), 0 0 0 10px rgba(60, 83, 101, 0.95);
+      }
+
+      .mock-node.gray {
+        background: rgba(123, 147, 164, 0.9);
+        box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.18);
+      }
+
+      .mock-node-label {
+        color: #182126;
+        font-size: 0.92rem;
+        text-align: center;
+      }
+
+      .mock-session-head {
+        display: grid;
+        gap: 10px;
+      }
+
+      .mock-progress {
+        height: 14px;
+        border-radius: 999px;
+        background: rgba(104, 126, 140, 0.6);
+        overflow: hidden;
+      }
+
+      .mock-progress > span {
+        display: block;
+        height: 100%;
+        width: 62%;
+        border-radius: inherit;
+        background: var(--flash-theme);
+      }
+
+      .mock-card {
+        border-radius: 22px;
+        padding: 18px;
+        background: #ffffff;
+        border: 2px solid rgba(254, 176, 35, 0.2);
+        min-height: 220px;
+        display: grid;
+        align-content: space-between;
+      }
+
+      .mock-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #5b6b72;
+      }
+
+      .mock-card-text {
+        text-align: center;
+        color: #ffd37a;
+        font-size: 2rem;
+        line-height: 1.18;
+        font-weight: 500;
+        padding: 10px 0 18px;
+      }
+
+      .mock-card-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .mock-audio-btn {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 0;
+        background: var(--flash-theme);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 1.2rem;
+        box-shadow: inset 0 -6px 0 var(--flash-theme-shadow);
+      }
+
+      .mock-speed {
+        border-radius: 999px;
+        padding: 8px 12px;
+        color: #ffffff;
+        border: 2px solid var(--flash-theme);
+        background: var(--flash-theme);
+        font-size: 0.86rem;
+      }
+
+      .mock-rating-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mock-rating {
+        border-radius: 16px;
+        padding: 12px 10px;
+        text-align: center;
+        color: #fff;
+        font-weight: 700;
+        background: rgba(254, 176, 35, 0.88);
+        box-shadow: inset 0 -5px 0 var(--flash-theme-shadow);
+      }
+
+      .mock-report {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mock-metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mock-metric {
+        border-radius: 16px;
+        padding: 12px;
+        background: #ffffff;
+        border: 2px solid rgba(254, 176, 35, 0.18);
+      }
+
+      .mock-metric span {
+        display: block;
+        color: #5b6b72;
+        font-size: 0.8rem;
+      }
+
+      .mock-metric strong {
+        display: block;
+        margin-top: 4px;
+        color: #182126;
+        font-size: 1.1rem;
+      }
+
+      .mock-bars {
+        display: grid;
+        gap: 10px;
+      }
+
+      .mock-bar-row {
+        display: grid;
+        grid-template-columns: 88px 1fr 36px;
+        align-items: center;
+        gap: 10px;
+        color: #182126;
+      }
+
+      .mock-bar {
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .mock-bar > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--flash-theme);
+      }
+
+      .footer-note {
+        margin-top: 18px;
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: #ffffff;
+        border: 2px solid var(--flash-theme);
+        color: #304047;
+      }
+
+      @media (max-width: 860px) {
+        .page {
+          width: min(100vw - 24px, 1100px);
+          margin: 14px auto 26px;
+        }
+
+        .hero,
+        .card {
+          padding: 18px;
+        }
+
+        .grid,
+        .scene-grid,
+        .mock-rating-row,
+        .mock-metric-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .mock-bar-row {
+          grid-template-columns: 72px 1fr 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div class="eyebrow">Flashcards Module Documentation</div>
+        <h1>Flashcards</h1>
+        <p>
+          Esta documentaÃ§Ã£o descreve o funcionamento atual do mÃ³dulo <strong>Flashcards</strong> do English Platform,
+          com foco em trilha de revisÃ£o, lÃ³gica SRS inspirada em sistemas modernos de repetiÃ§Ã£o espaÃ§ada, sessÃ£o ativa,
+          resultados analÃ­ticos e integraÃ§Ã£o com My Vocabulary e revisÃ£o global.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Objetivo do MÃ³dulo</h2>
+          <p>
+            O Flashcards foi estruturado para revisar vocabulÃ¡rio e contexto com velocidade, repetiÃ§Ã£o e priorizaÃ§Ã£o
+            inteligente. Ele trabalha com sessÃµes diÃ¡rias, decks por trilha, cards frÃ¡geis, reforÃ§o adaptativo e
+            leitura clara de resultados.
+          </p>
+
+          <h3>O que ele cobre hoje</h3>
+          <div class="pill-row">
+            <span class="pill">Trilha por decks</span>
+            <span class="pill">SRS por card</span>
+            <span class="pill">Only difficult cards</span>
+            <span class="pill">Resultados analÃ­ticos</span>
+            <span class="pill">IntegraÃ§Ã£o com Vocabulary</span>
+            <span class="pill">IntegraÃ§Ã£o com revisÃ£o global</span>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Motor de RevisÃ£o</h2>
+          <ul class="list">
+            <li><strong>Estados por card:</strong> new, learning, relearning e review.</li>
+            <li><strong>Ratings:</strong> easy, good, hard e again influenciam o prÃ³ximo intervalo.</li>
+            <li><strong>Campos de memÃ³ria:</strong> due_at, interval_days, stability_days, difficulty e forgetting_index.</li>
+            <li><strong>Only difficult:</strong> filtra a sessÃ£o para focar apenas nos cards frÃ¡geis.</li>
+            <li><strong>Fila dinÃ¢mica:</strong> cards errados podem voltar dentro da prÃ³pria sessÃ£o.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Fluxo da SessÃ£o</h2>
+          <div class="timeline">
+            <div class="timeline-item">
+              <strong>1. Escolha do deck</strong>
+              <span>O aluno entra na trilha e escolhe o prÃ³ximo deck liberado ou um deck difÃ­cil.</span>
+            </div>
+            <div class="timeline-item">
+              <strong>2. RevisÃ£o ativa</strong>
+              <span>O card pode ser virado, ouvido, acelerado e respondido com um rating.</span>
+            </div>
+            <div class="timeline-item">
+              <strong>3. AtualizaÃ§Ã£o do SRS</strong>
+              <span>Cada resposta atualiza dificuldade, estabilidade e prÃ³xima revisÃ£o.</span>
+            </div>
+            <div class="timeline-item">
+              <strong>4. IntegraÃ§Ã£o de vocabulÃ¡rio</strong>
+              <span>Com o toggle ligado, palavras revisadas podem alimentar My Vocabulary.</span>
+            </div>
+            <div class="timeline-item">
+              <strong>5. RelatÃ³rio final</strong>
+              <span>Ao concluir, o aluno vÃª precisÃ£o, ritmo, tempo total, barras por resposta e cards mais frÃ¡geis.</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Resultados e MÃ©tricas</h2>
+          <ul class="list">
+            <li><strong>Tempo total:</strong> calculado do primeiro ao Ãºltimo card.</li>
+            <li><strong>PrecisÃ£o:</strong> score final com destaque visual.</li>
+            <li><strong>Ritmo mÃ©dio:</strong> cartÃµes revisados por minuto.</li>
+            <li><strong>RevisÃµes prioritÃ¡rias:</strong> quantidade de cards ainda frÃ¡geis.</li>
+            <li><strong>HistÃ³rico por deck:</strong> sessÃµes, melhor precisÃ£o, mÃ©dia e Ãºltima revisÃ£o.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>IntegraÃ§Ãµes</h2>
+          <ul class="list">
+            <li><strong>My Vocabulary:</strong> toggle ON/OFF para atualizar o vocabulÃ¡rio do aluno.</li>
+            <li><strong>SRS Global:</strong> cards frÃ¡geis podem ser enviados para a revisÃ£o espaÃ§ada global.</li>
+            <li><strong>Profile e Reports:</strong> resultados de sessÃ£o alimentam visÃ£o consolidada do usuÃ¡rio.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Controles de Trilha</h2>
+          <ul class="list">
+            <li><strong>Agenda de revisÃ£o:</strong> a trilha informa cards vencendo hoje e prÃ³xima janela de revisÃ£o.</li>
+            <li><strong>Feito hoje:</strong> decks completos no dia sÃ£o bloqueados atÃ© o prÃ³ximo ciclo diÃ¡rio.</li>
+            <li><strong>Only difficult cards:</strong> alternÃ¢ncia rÃ¡pida para modo de reforÃ§o.</li>
+            <li><strong>Status de integraÃ§Ã£o:</strong> toggle visÃ­vel para My Vocabulary.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Cenas do MÃ³dulo</h2>
+        <p>
+          Abaixo estÃ£o representaÃ§Ãµes visuais das principais telas do <strong>Flashcards</strong>, recriadas em
+          HTML/CSS para documentar a experiÃªncia do mÃ³dulo sem depender de prints.
+        </p>
+
+        <div class="scene-grid">
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>1. Trilha de decks</strong>
+              <span>VisÃ£o dos decks com progressÃ£o e indicaÃ§Ã£o do prÃ³ximo passo.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-path">
+                <div class="mock-node-wrap">
+                  <div class="mock-badge">COMEÃ‡AR</div>
+                  <div class="mock-node ring">ðŸ—‚</div>
+                  <div class="mock-node-label">SaudaÃ§Ãµes e introduÃ§Ãµes</div>
+                </div>
+                <div class="mock-node-wrap">
+                  <div class="mock-node">â˜…</div>
+                  <div class="mock-node-label">Conversas do dia a dia</div>
+                </div>
+                <div class="mock-node-wrap">
+                  <div class="mock-node gray">ðŸ†</div>
+                  <div class="mock-node-label">RevisÃ£o de contexto</div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>2. Card em revisÃ£o</strong>
+              <span>Card ativo com Ã¡udio, texto central e controle de velocidade.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-session-head">
+                <div class="mock-progress"><span></span></div>
+              </div>
+              <div class="mock-card">
+                <div class="mock-card-top">
+                  <span>Frente</span>
+                  <span>Novo card</span>
+                </div>
+                <div class="mock-card-text">Ele trabalha em um hospital.</div>
+                <div class="mock-card-bottom">
+                  <button class="mock-audio-btn" type="button">ðŸ”Š</button>
+                  <span class="mock-speed">1.00x</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>3. Resposta por rating</strong>
+              <span>A sessÃ£o avanÃ§a com avaliaÃ§Ã£o de dificuldade apÃ³s o flip.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-card">
+                <div class="mock-card-top">
+                  <span>Verso</span>
+                  <span>Em consolidaÃ§Ã£o</span>
+                </div>
+                <div class="mock-card-text">He works in a hospital.</div>
+                <div class="mock-card-bottom">
+                  <button class="mock-audio-btn" type="button">ðŸ”Š</button>
+                  <span class="mock-speed">1.00x</span>
+                </div>
+              </div>
+              <div class="mock-rating-row">
+                <div class="mock-rating">Easy</div>
+                <div class="mock-rating">Good</div>
+                <div class="mock-rating">Hard</div>
+                <div class="mock-rating">Again</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>4. RelatÃ³rio final</strong>
+              <span>Resumo visual da revisÃ£o com mÃ©tricas e barras por resposta.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-report">
+                <div class="mock-metric-grid">
+                  <div class="mock-metric">
+                    <span>PrecisÃ£o</span>
+                    <strong>98%</strong>
+                  </div>
+                  <div class="mock-metric">
+                    <span>Tempo total</span>
+                    <strong>06m 42s</strong>
+                  </div>
+                  <div class="mock-metric">
+                    <span>Cards</span>
+                    <strong>44</strong>
+                  </div>
+                  <div class="mock-metric">
+                    <span>PrioritÃ¡rios</span>
+                    <strong>11</strong>
+                  </div>
+                </div>
+                <div class="mock-bars">
+                  <div class="mock-bar-row">
+                    <span>Easy</span>
+                    <div class="mock-bar"><span style="width: 26%"></span></div>
+                    <strong>9</strong>
+                  </div>
+                  <div class="mock-bar-row">
+                    <span>Good</span>
+                    <div class="mock-bar"><span style="width: 58%"></span></div>
+                    <strong>20</strong>
+                  </div>
+                  <div class="mock-bar-row">
+                    <span>Hard</span>
+                    <div class="mock-bar"><span style="width: 21%"></span></div>
+                    <strong>7</strong>
+                  </div>
+                  <div class="mock-bar-row">
+                    <span>Again</span>
+                    <div class="mock-bar"><span style="width: 12%"></span></div>
+                    <strong>4</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>ObservaÃ§Ãµes de ImplementaÃ§Ã£o</h2>
+        <ul class="list">
+          <li><strong>Cor tema:</strong> o mÃ³dulo utiliza a cor principal do Flashcards, <code>#FEB023</code>.</li>
+          <li><strong>Fonte:</strong> esta documentaÃ§Ã£o usa a mesma famÃ­lia tipogrÃ¡fica local do projeto, <code>DIN Round Pro</code>.</li>
+          <li><strong>PersistÃªncia:</strong> progresso salvo por deck, por card e por resultados de sessÃ£o.</li>
+          <li><strong>Objetivo desta documentaÃ§Ã£o:</strong> apoiar apresentaÃ§Ã£o tÃ©cnica, revisÃ£o de produto e futura padronizaÃ§Ã£o da documentaÃ§Ã£o dos demais mÃ³dulos.</li>
+        </ul>
+
+        <div class="footer-note">
+          O Flashcards estÃ¡ documentado para demonstrar claramente trilha, sessÃ£o ativa, SRS, integraÃ§Ã£o com vocabulÃ¡rio
+          e relatÃ³rio final analÃ­tico.
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+

@@ -61,7 +61,7 @@
     },
     "listening": {
       "completed_today": [],
-      "last_reset_date": "2026-03-12",
+      "last_reset_date": "2026-03-19",
       "total_completed": 0,
       "last_theme_id": null,
       "accent_mode": "us",
@@ -233,11 +233,6 @@
     "grammar": {
       "completed_units": [],
       "last_unit": null
-    },
-    "ui_navigation": {
-      "selected_module_key": "writing",
-      "active_screen": "home",
-      "grammar_current_level": "A1"
     }
   },
   "my_vocabulary": {
@@ -251,5 +246,8 @@
     "last_filter": "both",
     "last_search": "",
     "saved_words_custom": []
+  },
+  "app_navigation": {
+    "root_view": "login"
   }
 }

@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flashcards Documentation</title>
+    <link rel="stylesheet" href="./shared-doc.css" />
+    <style>
+      :root {
+        --doc-theme: #feb023;
+        --doc-theme-dark: #c98308;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div class="eyebrow">Flashcards Documentation</div>
+        <h1>Flashcards</h1>
+        <p>
+          This document explains the Flashcards module as a review engine for vocabulary and context. It covers the
+          deck path, the SRS logic, the active review session, result metrics, and integration with My Vocabulary and
+          the global spaced-review layer.
+        </p>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Module Goal</h2>
+          <p>
+            Flashcards was designed to review words and contexts quickly, with repeated exposure and priority-based
+            reinforcement. The module combines deck progression, per-card SRS, difficult-card focus, and rich final
+            reports.
+          </p>
+          <div class="pill-row">
+            <span class="pill">Deck path</span>
+            <span class="pill">Per-card SRS</span>
+            <span class="pill">Only difficult</span>
+            <span class="pill">Analytical results</span>
+            <span class="pill">Vocabulary integration</span>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Review Engine</h2>
+          <ul class="list">
+            <li><strong>Per-card states:</strong> new, learning, relearning, and review.</li>
+            <li><strong>Ratings:</strong> easy, good, hard, and again influence the next interval.</li>
+            <li><strong>Core memory fields:</strong> due date, interval, stability, difficulty, and forgetting index.</li>
+            <li><strong>Only difficult mode:</strong> filters the session to focus on fragile cards.</li>
+            <li><strong>Dynamic queue:</strong> missed cards can return later in the same session.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Session Flow</h2>
+          <ul class="list">
+            <li><strong>1. Deck selection:</strong> the learner enters the path and opens an unlocked or difficult deck.</li>
+            <li><strong>2. Active review:</strong> the card can be flipped, listened to, sped up, and rated.</li>
+            <li><strong>3. SRS update:</strong> each response updates difficulty, stability, and the next review time.</li>
+            <li><strong>4. Vocabulary integration:</strong> reviewed words can feed My Vocabulary if the toggle is on.</li>
+            <li><strong>5. Final report:</strong> the learner sees accuracy, pace, total time, and fragile cards.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Results and Metrics</h2>
+          <ul class="list">
+            <li><strong>Total time:</strong> calculated from the first card to the last one.</li>
+            <li><strong>Accuracy:</strong> final score with visual emphasis.</li>
+            <li><strong>Average pace:</strong> cards reviewed per minute.</li>
+            <li><strong>Priority reviews:</strong> cards that still need reinforcement.</li>
+            <li><strong>Deck history:</strong> sessions, best accuracy, average performance, and latest review.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Module Integrations</h2>
+          <ul class="list">
+            <li><strong>My Vocabulary:</strong> ON/OFF toggle for sending reviewed words into the learner vocabulary.</li>
+            <li><strong>Global review:</strong> fragile cards can be added to the cross-module review queue.</li>
+            <li><strong>Profile and reports:</strong> session outputs enrich the learner's consolidated analytics.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Path Controls</h2>
+          <ul class="list">
+            <li><strong>Review schedule:</strong> decks show due cards and the next review window.</li>
+            <li><strong>Done today:</strong> finished decks stay locked until the next daily cycle.</li>
+            <li><strong>Only difficult cards:</strong> quick switch for reinforcement mode.</li>
+            <li><strong>Vocabulary sync toggle:</strong> visible control for My Vocabulary updates.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Module Scenes</h2>
+        <p>The scenes below recreate the main Flashcards states in HTML/CSS, without using screenshots.</p>
+        <div class="scene-grid">
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Deck path</strong>
+              <span>Deck progression and next available review.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-row">
+                <div class="mock-list-item"><strong>Cards</strong><p>Greetings and introductions</p></div>
+                <div class="mock-list-item"><strong>Star</strong><p>Daily conversations</p></div>
+                <div class="mock-list-item"><strong>Trophy</strong><p>Context review</p></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Card under review</strong>
+              <span>Centered text, audio, and speed control.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-panel">
+                <strong>Front</strong>
+                <p>He works in a hospital.</p>
+              </div>
+              <div class="mock-chip">Audio • 1.00x</div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Rating step</strong>
+              <span>Difficulty evaluation after the flip.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-panel">
+                <strong>Back</strong>
+                <p>He works in a hospital.</p>
+              </div>
+              <div class="pill-row">
+                <span class="pill">Easy</span>
+                <span class="pill">Good</span>
+                <span class="pill">Hard</span>
+                <span class="pill">Again</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Final report</strong>
+              <span>Analytical summary of the review session.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-row">
+                <div class="mock-metric"><span>Accuracy</span><strong>98%</strong></div>
+                <div class="mock-metric"><span>Total time</span><strong>06m 42s</strong></div>
+                <div class="mock-metric"><span>Cards</span><strong>44</strong></div>
+              </div>
+              <div class="mock-bar-row"><span>Easy</span><div class="mock-bar"><span style="width:26%"></span></div><strong>9</strong></div>
+              <div class="mock-bar-row"><span>Good</span><div class="mock-bar"><span style="width:58%"></span></div><strong>20</strong></div>
+              <div class="mock-bar-row"><span>Hard</span><div class="mock-bar"><span style="width:21%"></span></div><strong>7</strong></div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

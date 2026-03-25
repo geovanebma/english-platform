@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
+import { getUiLabel } from "../lib/uiLabels";
 import { ArrowLeft, Volume2 } from "lucide-react";
 
 const RATINGS = [
-  { key: "easy", label: "Easy" },
-  { key: "good", label: "Good" },
-  { key: "hard", label: "Hard" },
-  { key: "again", label: "Again" },
+  { key: "easy", labelKey: "flash.rate.easy", fallback: "Easy" },
+  { key: "good", labelKey: "flash.rate.good", fallback: "Good" },
+  { key: "hard", labelKey: "flash.rate.hard", fallback: "Hard" },
+  { key: "again", labelKey: "flash.rate.again", fallback: "Again" },
 ];
 
 function speakText(text, lang = "en-US", rate = 1) {
@@ -21,6 +22,7 @@ export default function FlashcardSession({
   deck,
   deckId = "A1",
   deckName,
+  srsCards = {},
   onSessionComplete,
   onProgress,
   onExit,
@@ -34,14 +36,70 @@ export default function FlashcardSession({
   const [sourceLanguage, setSourceLanguage] = useState("pt-BR");
   const [learningLanguage, setLearningLanguage] = useState("en-US");
   const lastProgressSnapshotRef = useRef("");
+  const startedAtRef = useRef(initialSession?.started_at || new Date().toISOString());
 
   const currentCard = deck[currentIndex];
   const total = deck.length || 1;
   const progress = ((currentIndex + 1) / total) * 100;
+  const currentSrsEntry = currentCard ? srsCards?.[`${deckId}:${currentCard.id}`] : null;
+
+  const mastery = useMemo(() => {
+    if (!currentSrsEntry) {
+      return {
+        label: getUiLabel("flash.mastery.new", "New card"),
+        tone: "new",
+        note: getUiLabel("flash.mastery.new_note", "No history yet."),
+      };
+    }
+    const srsState = currentSrsEntry?.srs_state || "review";
+    const difficulty = Number(currentSrsEntry?.difficulty || 0);
+    const lapses = Number(currentSrsEntry?.lapses || 0);
+    const reviews = Number(currentSrsEntry?.reviews || 0);
+    const stability = Number(currentSrsEntry?.stability_days || 0);
+    const nextStepMinutes = Number(currentSrsEntry?.next_step_minutes || 0);
+    if (srsState === "learning") {
+      return {
+        label: getUiLabel("flash.mastery.learning", "Learning"),
+        tone: "mid",
+        note: nextStepMinutes
+          ? getUiLabel("flash.mastery.learning_note", "Next step in {minutes} min.").replace("{minutes}", String(nextStepMinutes))
+          : getUiLabel("flash.mastery.learning_short", "Still in short learning steps."),
+      };
+    }
+    if (srsState === "relearning") {
+      return {
+        label: getUiLabel("flash.mastery.relearning", "Active reinforcement"),
+        tone: "fragile",
+        note: nextStepMinutes
+          ? getUiLabel("flash.mastery.relearning_note", "Returns in {minutes} min if missed again.").replace("{minutes}", String(nextStepMinutes))
+          : getUiLabel("flash.mastery.relearning_short", "Card returned to relearning."),
+      };
+    }
+    if (lapses >= 2 || difficulty >= 7.4) {
+      return {
+        label: getUiLabel("flash.mastery.fragile", "Fragile"),
+        tone: "fragile",
+        note: getUiLabel("flash.mastery.fragile_note", "{count} reviews, needs reinforcement.").replace("{count}", String(reviews)),
+      };
+    }
+    if (stability >= 5 && difficulty <= 5.4) {
+      return {
+        label: getUiLabel("flash.mastery.mastered", "Mastered"),
+        tone: "strong",
+        note: getUiLabel("flash.mastery.mastered_note", "{count} reviews, good stability.").replace("{count}", String(reviews)),
+      };
+    }
+    return {
+      label: getUiLabel("flash.mastery.consolidating", "Consolidating"),
+      tone: "mid",
+      note: getUiLabel("flash.mastery.consolidating_note", "{count} reviews, keeping the pace.").replace("{count}", String(reviews)),
+    };
+  }, [currentSrsEntry]);
 
   useEffect(() => {
     const progressPayload = {
       deck_id: initialSession?.deck_id || deckId,
+      started_at: startedAtRef.current,
       card_order: deck.map((c) => c.id),
       current_index: currentIndex,
       is_flipped: isFlipped,
@@ -144,11 +202,11 @@ export default function FlashcardSession({
       <header className="flash-session-topbar">
         <button type="button" className="duo-back-btn" onClick={onExit}>
           <ArrowLeft size={18} />
-          Voltar
+          {getUiLabel("common.back", "Back")}
         </button>
         <h1>{deckName}</h1>
         <button type="button" className="duo-back-btn" onClick={onExit}>
-          Encerrar
+          {getUiLabel("flash.exit", "Exit")}
         </button>
       </header>
 
@@ -162,14 +220,27 @@ export default function FlashcardSession({
         </span>
       </div>
 
-      <div className="flash-card-stage">
-        <button
-          type="button"
-          className={`flash-card-3d ${isFlipped ? "is-flipped" : ""}`}
-          onClick={() => setIsFlipped((prev) => !prev)}
-        >
+        <div className="flash-card-stage">
+          <div
+            className={`flash-card-3d ${isFlipped ? "is-flipped" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsFlipped((prev) => !prev)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsFlipped((prev) => !prev);
+              }
+            }}
+          >
           <div className="flash-card-face flash-card-front">
-            <div className="flash-card-face-kicker">Front</div>
+            <div className="flash-card-face-head">
+              <div className="flash-card-face-kicker">{getUiLabel("flash.face.front", "Front")}</div>
+              <div className={`flash-card-mastery is-${mastery.tone}`}>
+                <strong>{mastery.label}</strong>
+                <span>{mastery.note}</span>
+              </div>
+            </div>
             <div className="flash-card-main">{currentCard.front}</div>
             <div className="flash-card-controls">
               <button
@@ -179,7 +250,7 @@ export default function FlashcardSession({
                   e.stopPropagation();
                   speakText(currentCard.front, learningLanguage, playbackRate);
                 }}
-                aria-label="Ouvir frase"
+                aria-label={getUiLabel("flash.listen_front", "Listen to front")}
               >
                 <Volume2 size={22} />
               </button>
@@ -197,7 +268,13 @@ export default function FlashcardSession({
           </div>
 
           <div className="flash-card-face flash-card-back">
-            <div className="flash-card-face-kicker">Back</div>
+            <div className="flash-card-face-head">
+              <div className="flash-card-face-kicker">{getUiLabel("flash.face.back", "Back")}</div>
+              <div className={`flash-card-mastery is-${mastery.tone}`}>
+                <strong>{mastery.label}</strong>
+                <span>{mastery.note}</span>
+              </div>
+            </div>
             <div className="flash-card-main">{currentCard.back}</div>
             <div className="flash-card-controls">
               <button
@@ -207,29 +284,39 @@ export default function FlashcardSession({
                   e.stopPropagation();
                   speakText(currentCard.back, sourceLanguage, playbackRate);
                 }}
-                aria-label="Ouvir traducao"
+                aria-label={getUiLabel("flash.listen_back", "Listen to translation")}
               >
                 <Volume2 size={22} />
               </button>
-              <button type="button" className="flash-speed-btn">
-                {playbackRate.toFixed(2)}x
-              </button>
+                <button
+                  type="button"
+                  className="flash-speed-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSpeed();
+                  }}
+                >
+                  {playbackRate.toFixed(2)}x
+                </button>
+              </div>
             </div>
           </div>
-        </button>
-      </div>
+        </div>
 
       {isFlipped ? (
         <div className="flash-rate-row">
           {RATINGS.map((rating) => (
             <button key={rating.key} type="button" className="flash-rate-btn" onClick={() => handleRate(rating.key)}>
-              {rating.label}
+              {getUiLabel(rating.labelKey, rating.fallback)}
             </button>
           ))}
         </div>
       ) : (
-        <div className="flash-tap-hint">Toque no card para virar</div>
+        <div className="flash-tap-hint">{getUiLabel("flash.tap_flip", "Tap the card to flip")}</div>
       )}
     </section>
   );
 }
+
+
+

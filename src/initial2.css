@@ -3660,8 +3660,7 @@ select {
 }
 
 .dictionary-listen-btn {
-  width: 46px;
-  height: 46px;
+  width:  58px;\n  height: 58px;
   border-radius: 999px;
   border: 0;
   background: color-mix(in srgb, var(--dictionary-theme) 82%, #ffffff 18%);
@@ -7905,8 +7904,7 @@ h6,
 }
 
 .dictionary-listen-btn svg {
-  width: 28px !important;
-  height: 28px !important;
+  width:  34px !important;\n  height: 34px !important;
   stroke-width: 2.4;
 }
 
@@ -8245,3 +8243,4 @@ body {
     border-radius: 24px;
   }
 }
+

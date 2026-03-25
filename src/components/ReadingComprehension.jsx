@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { getUiLabel } from "../lib/uiLabels";
 import { ArrowLeft, CheckCircle2, XCircle, BookOpen, Plus } from "lucide-react";
 import ModuleGuideButton from "./ModuleGuideButton";
 
@@ -237,10 +238,10 @@ async function readWikiWordsText() {
   return "";
 }
 
-function splitPassageTokens(passage) {
+function splitPassageTokens(passage) {
   const matches = String(passage || "").match(/\w+|[^\w\s]+|\s+/g);
   if (!matches) return [];
-  return matches.map((token, idx) => {
+  return matches.map((token, idx) => {
     const normalized = normalizeWord(token);
     const isWord = /^[a-z]+$/.test(normalized);
     return {
@@ -249,8 +250,16 @@ function splitPassageTokens(passage) {
       normalized,
       isWord,
     };
-  });
-}
+  });
+}
+
+function speakWord(text, lang = "en-US") {
+  if (!window.speechSynthesis || !text) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
+}
 
 export default function ReadingComprehension({ setCurrentView, color = "#b01766" }) {
   const [stage, setStage] = useState("list");
@@ -304,7 +313,7 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
   const totalQuestions = selectedPassage?.questions?.length || 0;
   const progressPercent = totalQuestions ? Math.round((questionIndex / totalQuestions) * 100) : 0;
 
-  const selectedGlossaryEntry = useMemo(() => {
+  const selectedGlossaryEntry = useMemo(() => {
     if (!selectedWord) return null;
     return (
       GLOSSARY[selectedWord] || {
@@ -313,7 +322,27 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
         example: `Try using "${selectedWord}" in a short sentence.`,
       }
     );
-  }, [selectedWord]);
+  }, [selectedWord]);
+
+  const selectedWordSaved = useMemo(() => {
+    if (!selectedWord) return false;
+    const saved = Array.isArray(stats.glossary_saved_words) ? stats.glossary_saved_words : [];
+    return saved.includes(selectedWord);
+  }, [selectedWord, stats.glossary_saved_words]);
+
+  const relatedGlossaryWords = useMemo(() => {
+    if (!selectedWord) return [];
+    const seen = new Set();
+    return passageTokens
+      .filter((token) => token.isWord && token.normalized !== selectedWord && GLOSSARY[token.normalized])
+      .map((token) => token.normalized)
+      .filter((word) => {
+        if (seen.has(word)) return false;
+        seen.add(word);
+        return true;
+      })
+      .slice(0, 4);
+  }, [passageTokens, selectedWord]);
 
   const openPassage = (id) => {
     setSelectedPassageId(id);
@@ -332,13 +361,13 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: optionIndex }));
     setFeedback({
       correct: isCorrect,
-      text: isCorrect ? "Correto! Boa leitura." : "Resposta incorreta. Revise o trecho e tente a proxima.",
+      text: isCorrect ? getUiLabel("reading.correct", "Correct! Great reading.") : getUiLabel("reading.wrong", "Incorrect answer. Review the passage and try again."),
     });
   };
 
   const saveWordToVocabulary = async () => {
     if (!selectedWord) return;
-    setGlossaryMessage("Salvando...");
+    setGlossaryMessage(getUiLabel("reading.saving", "Saving..."));
     try {
       const progress = await readProgress();
       const normalizedWord = normalizeWord(selectedWord);
@@ -422,9 +451,9 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
 
       const saved = await writeProgress(progress);
       setStats(saved.modules.reading_comprehension);
-      setGlossaryMessage(`"${readableWord}" salva no vocabulÃ¡rio.`);
+      setGlossaryMessage(getUiLabel("reading.saved", "\"{word}\" saved to vocabulary.").replace("{word}", readableWord));
     } catch {
-      setGlossaryMessage("Falha ao salvar palavra no vocabulario.");
+      setGlossaryMessage(getUiLabel("reading.save_error", "Failed to save word to vocabulary."));
     }
   };
 
@@ -482,7 +511,7 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
           }}
         >
           <ArrowLeft size={18} />
-          Voltar
+          {getUiLabel("common.back", "Back")}
         </button>
         <div>
           <div className="reading-kicker">READING COMPREHENSION</div>
@@ -508,7 +537,7 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
                   {p.level} | {p.theme}
                 </span>
                 <span className="reading-card-meta">
-                  {done ? "Concluida" : "Nova"} | Best: {best}%
+                  {done ? getUiLabel("reading.completed", "Completed") : getUiLabel("reading.new", "New")} | {getUiLabel("reading.best", "Best")}: {best}%
                 </span>
               </button>
             );
@@ -538,12 +567,12 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
                 <button
                   key={token.id}
                   type="button"
-                  className={`reading-word-btn ${isActive ? "is-active" : ""}`}
-                  onClick={() => {
-                    setSelectedWord(token.normalized);
-                    setGlossaryMessage("");
-                  }}
-                >
+                  className={`reading-word-btn ${isActive ? "is-active" : ""}`}
+                  onClick={() => {
+                    setSelectedWord((prev) => (prev === token.normalized ? null : token.normalized));
+                    setGlossaryMessage("");
+                  }}
+                >
                   {token.raw}
                 </button>
               );
@@ -552,26 +581,46 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
 
           {selectedWord ? (
             <section className="reading-glossary-card">
-              <div className="reading-glossary-head">
-                <strong>{selectedWord}</strong>
-                <span>
-                  <BookOpen size={14} />
-                  Glossario contextual
-                </span>
-              </div>
+              <div className="reading-glossary-head">
+                <strong>{selectedWord}</strong>
+                <span>
+                  <BookOpen size={14} />
+                  {getUiLabel("reading.glossary", "Contextual glossary")}
+                </span>
+                <button type="button" className="reading-glossary-sound" onClick={() => speakWord(selectedWord, "en-US")}>
+                  {getUiLabel("reading.listen", "Listen")}
+                </button>
+              </div>
               <p>
                 <b>EN:</b> {selectedGlossaryEntry?.meaning_en}
               </p>
               <p>
                 <b>PT:</b> {selectedGlossaryEntry?.meaning_pt}
               </p>
-              <p>
-                <b>Exemplo:</b> {selectedGlossaryEntry?.example}
-              </p>
-              <button type="button" onClick={saveWordToVocabulary}>
-                <Plus size={14} />
-                Salvar no vocabulario
-              </button>
+              <p>
+                <b>{getUiLabel("reading.example", "Example")}: </b> {selectedGlossaryEntry?.example}
+              </p>
+              {relatedGlossaryWords.length ? (
+                <div className="reading-glossary-related">
+                  {relatedGlossaryWords.map((word) => (
+                    <button
+                      key={word}
+                      type="button"
+                      className="reading-related-chip"
+                      onClick={() => {
+                        setSelectedWord(word);
+                        setGlossaryMessage("");
+                      }}
+                    >
+                      {word}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <button type="button" onClick={saveWordToVocabulary} disabled={selectedWordSaved}>
+                <Plus size={14} />
+                {selectedWordSaved ? getUiLabel("reading.saved_already", "Already saved") : getUiLabel("reading.save_vocab", "Save to vocabulary")}
+              </button>
               {glossaryMessage ? <em>{glossaryMessage}</em> : null}
             </section>
           ) : null}
@@ -604,7 +653,7 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
               onClick={nextQuestion}
               disabled={typeof answers[currentQuestion.id] !== "number"}
             >
-              {questionIndex < totalQuestions - 1 ? "Proxima" : "Finalizar"}
+              {questionIndex < totalQuestions - 1 ? getUiLabel("common.next", "Next") : getUiLabel("common.finish", "Finish")}
             </button>
           </div>
         </article>
@@ -612,7 +661,7 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
 
       {stage === "result" && result && selectedPassage && (
         <article className="reading-result">
-          <h2>Resultado final</h2>
+          <h2>{getUiLabel("reading.final_result", "Final result")}</h2>
           <p>
             Voce acertou <strong>{result.correctCount}</strong> de <strong>{result.totalQuestions}</strong>{" "}
             perguntas.
@@ -620,10 +669,10 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
           <p className="reading-result-score">{result.percent}%</p>
           <div className="reading-actions">
             <button type="button" className="reading-next-btn" onClick={() => openPassage(selectedPassage.id)}>
-              Refazer passagem
+              {getUiLabel("reading.retry", "Retry passage")}
             </button>
             <button type="button" className="reading-secondary-btn" onClick={() => setStage("list")}>
-              Voltar para temas
+              {getUiLabel("common.back_to_themes", "Back to themes")}
             </button>
           </div>
         </article>
@@ -631,3 +680,8 @@ export default function ReadingComprehension({ setCurrentView, color = "#b01766"
     </section>
   );
 }
+
+
+
+
+

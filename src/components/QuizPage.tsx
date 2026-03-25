@@ -1,4 +1,4 @@
-// src/components/QuizPage.jsx
+﻿// src/components/QuizPage.jsx
 import React from 'react';
 
 // Recebe o tópico selecionado e a função para voltar
@@ -9,7 +9,7 @@ function QuizPage({ topic, setCurrentModuleView }) {
         onClick={() => setCurrentModuleView('lessonList')} // Volta para a lista de lições
         className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition-colors mb-8"
       >
-        ← Voltar para A1 - Lições
+        {getUiLabel("common.back_to_lessons", "Back to lessons")}
       </button>
 
       <h1 className="text-3xl font-bold text-gray-900 mb-4">{topic}</h1>
