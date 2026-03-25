@@ -355,6 +355,7 @@ Esses pontos foram movidos para depois. Eles aumentam escala, profundidade de co
 - [x] A pasta raiz `english-platform` continua sendo a versao principal inspirada no Duolingo
 - [x] A pasta `v2` foi criada como alternativa com identidade visual propria
 - [x] Todas as chaves atuais de `getUiLabel` usadas no app estao semeadas no BD ao menos em `pt-BR` e `en-US`
+- [x] O `.env` atual do projeto aponta o PostgreSQL para o banco `english`; backups/exportacoes recentes foram feitos desse banco, nao de `english_platform`
 - [ ] Atualizar este checklist a cada bloco importante concluido
 
 ## Internacionalizacao por Tela (revisao completa)
