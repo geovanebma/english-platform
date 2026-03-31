@@ -1,0 +1,133 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Apresentacao - English Platform</title>
+  <style>
+    :root { --duo-green:#58cc02; --duo-dark:#131f24; --duo-blue:#1cb0f6; --card:#0f2a38; --text:#f5fbff; --muted:#b9d1de; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; color:var(--text); background:var(--duo-dark); }
+    .page { max-width: 980px; margin: 0 auto; padding: 28px 28px 60px; }
+    .hero { background: linear-gradient(135deg, #1a3b2a, #103545 60%); border:1px solid #2e596e; border-radius:20px; padding:22px; display:flex; align-items:center; gap:18px; }
+    .hero img { width:82px; height:82px; object-fit:contain; background:#fff; border-radius:50%; padding:8px; }
+    .hero h1 { margin:0; font-size:32px; color:#fff; }
+    .hero p { margin:6px 0 0; color:var(--muted); }
+    .badge { display:inline-block; margin-top:8px; background:var(--duo-green); color:#0d2508; font-weight:700; padding:6px 10px; border-radius:999px; }
+
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:16px; }
+    .card { background:var(--card); border:1px solid #2f5e76; border-radius:14px; padding:14px; }
+    .card h2 { margin:0 0 8px; font-size:20px; color:#fff; }
+    .card h3 { margin:8px 0 6px; font-size:16px; color:#cce8f9; }
+    .card p, .card li { color:#d8ecf8; line-height:1.45; }
+    .contact { background:#0f3220; border-color:#2f7d43; }
+    .contact strong { color:#b7ff86; }
+
+    .modules { margin-top:16px; }
+    .modules table { width:100%; border-collapse: collapse; background:#0d2532; border:1px solid #2f5e76; border-radius:14px; overflow:hidden; }
+    .modules th, .modules td { border-bottom:1px solid #264a5e; padding:10px; text-align:left; vertical-align:top; }
+    .modules th { background:#123548; color:#d6f0ff; }
+    .modules tr:last-child td { border-bottom:none; }
+    .done { color:#b6ff98; font-weight:700; }
+    .todo { color:#ffd4a3; font-weight:700; }
+
+    .roadmap { margin-top:16px; }
+    .roadmap ol { margin:0; padding-left:18px; }
+    .roadmap li { margin:6px 0; }
+
+    .footer { margin-top:20px; color:#9fc0d3; font-size:12px; }
+    @media print {
+      .page { max-width:none; padding:16mm; }
+      .hero, .card, .modules table { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <img src="../public/img/duolingo.png" alt="Duolingo" />
+      <div>
+        <h1>English Platform - Product Presentation</h1>
+        <p>Projeto autoral inspirado em UX estilo Duolingo, com foco em metodologias modernas de aprendizagem de ingles.</p>
+        <span class="badge">Theme: #58cc02 + #131f24</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>1) Introducao e hipotese</h2>
+        <p>Eu procurava um site que reunisse todas as principais metodologias para aprender ingles em um unico ambiente. Como nao encontrei uma solucao completa, decidi construir esta plataforma.</p>
+        <h3>Objetivo</h3>
+        <p>Unificar trilha, pratica, correcao, avaliacao, revisao espaçada e personalizacao pedagogica em uma experiencia unica.</p>
+      </article>
+
+      <article class="card contact">
+        <h2>2) Desenvolvedor</h2>
+        <p><strong>Nome:</strong> Geovane Barbosa de Magalhaes Assuncao</p>
+        <p><strong>Funcao:</strong> Programador / Desenvolvedor Sr / Automatizador</p>
+        <p><strong>Contato (WhatsApp):</strong> (11) 9 4554-9457</p>
+        <p><strong>E-mail:</strong> geovanebma@gmail.com</p>
+      </article>
+    </section>
+
+    <section class="modules">
+      <h2>3) Modulos - status atual</h2>
+      <table>
+        <thead>
+          <tr><th>Modulo</th><th>O que faz hoje</th><th>O que falta</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Grammar</td><td class="done">Trilha de licoes, exercicios e progresso.</td><td class="todo">Mais conteudo CEFR, speaking por cenario e calibracao adaptativa.</td></tr>
+          <tr><td>Flashcards</td><td class="done">Sessao com flip, audio, resultados e persistencia.</td><td class="todo">SRS avancado por cartao e priorizacao por erro recorrente.</td></tr>
+          <tr><td>My Vocabulary</td><td class="done">Tabela por rank, busca, filtros, learned e paginacao.</td><td class="todo">Banco escalavel e sincronizacao multi-dispositivo.</td></tr>
+          <tr><td>Dictionary</td><td class="done">Lista alfabetica, definicoes e suporte de idioma origem/alvo.</td><td class="todo">Cobertura semantica maior (IPA, exemplos e sinonimos robustos).</td></tr>
+          <tr><td>Speak With AI</td><td class="done">Chat com correcao, vocab upgrade e dica de contexto.</td><td class="todo">Integracao LLM de producao, guardrails e avaliacao por rubricas.</td></tr>
+          <tr><td>Courses</td><td class="done">Fluxo em niveis: curso -> modulo -> lesson.</td><td class="todo">Ferramenta de autoria e certificados.</td></tr>
+          <tr><td>Reading</td><td class="done">Passagens e questoes de compreensao.</td><td class="todo">Biblioteca extensa por nivel e glossario contextual total.</td></tr>
+          <tr><td>Pronounce</td><td class="done">Treino auditivo e progresso de vogais/consoantes.</td><td class="todo">Scoring fonetico real por fonema/ASR.</td></tr>
+          <tr><td>Writing</td><td class="done">Exercicios progressivos com feedback.</td><td class="todo">Rubricas avancadas e reescrita guiada.</td></tr>
+          <tr><td>Games</td><td class="done">Modo de jogo para reforco de aprendizagem.</td><td class="todo">Novas mecanicas e telemetria de aprendizado.</td></tr>
+          <tr><td>Modern Methodologies</td><td class="done">Painel metodologico com IA e melhorias.</td><td class="todo">Framework cientifico com medicao de impacto.</td></tr>
+          <tr><td>Listening</td><td class="done">Temas com autoplay/repeat/finalizar.</td><td class="todo">Mais sotaques e velocidades controladas.</td></tr>
+          <tr><td>Immersion</td><td class="done">Mini-book por tema com dialogo e audio.</td><td class="todo">Maior profundidade por nivel.</td></tr>
+          <tr><td>Speak With Natives</td><td class="done">Lista de nativos, call UI, chat e historico.</td><td class="todo">WebRTC completo (signaling, TURN/STUN, agenda e pagamento).</td></tr>
+          <tr><td>Translation Practice</td><td class="done">EN/PT com validacao semantica flexivel.</td><td class="todo">Motor semantico com IA para maior precisao contextual.</td></tr>
+          <tr><td>Test Your English Level</td><td class="done">Teste por blocos e nivel CEFR final.</td><td class="todo">Item bank calibrado e prova adaptativa (CAT).</td></tr>
+          <tr><td>Community</td><td class="done">Feed, comentarios e likes.</td><td class="todo">Moderacao em escala e anti-spam.</td></tr>
+          <tr><td>Music</td><td class="done">Busca/video/letras e suporte de audio por linha.</td><td class="todo">Integracao oficial de catalogo/letras e licenciamento.</td></tr>
+          <tr><td>Profile</td><td class="done">Metas e historico do aluno.</td><td class="todo">Auth real, seguranca e analytics de longo prazo.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="grid roadmap">
+      <article class="card">
+        <h2>4) Motores pedagogicos ja implementados</h2>
+        <ul>
+          <li>Revisao espacada global (SRS)</li>
+          <li>Diagnostico adaptativo continuo</li>
+          <li>Plano semanal automatico</li>
+          <li>Caderno de erros recorrentes</li>
+          <li>Retencao de longo prazo (7/30 dias)</li>
+          <li>Onboarding pedagogico inicial</li>
+          <li>Relatorios pedagogicos avancados</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>5) O que falta para nivel enterprise</h2>
+        <ol>
+          <li>Banco de dados de producao e sincronizacao robusta</li>
+          <li>Criptografia, seguranca de sessao e compliance (LGPD/GDPR)</li>
+          <li>Padronizacao visual 100% consistente estilo Duolingo</li>
+          <li>WebRTC real completo para chamadas nativas</li>
+          <li>Aplicativos mobile: Android (Kotlin) e iOS (Swift)</li>
+          <li>Pipeline CI/CD, testes automatizados e observabilidade</li>
+        </ol>
+      </article>
+    </section>
+
+    <p class="footer">Documento atualizado em 2026-03-07. Contato direto: (11) 9 4554-9457 | geovanebma@gmail.com</p>
+  </main>
+</body>
+</html>

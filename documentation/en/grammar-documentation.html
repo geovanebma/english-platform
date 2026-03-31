@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grammar Documentation</title>
+    <link rel="stylesheet" href="./shared-doc.css" />
+    <style>
+      :root {
+        --doc-theme: #58cc02;
+        --doc-theme-dark: #3f9800;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <div class="eyebrow">Grammar Documentation</div>
+        <h1>Grammar</h1>
+        <p>
+          This document explains how the Grammar module works inside English Platform. It covers the learning path,
+          exercise types, adaptive feedback, speech practice, progress persistence, and the module's links with
+          vocabulary, global review, and error tracking.
+        </p>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Module Goal</h2>
+          <p>
+            Grammar works as the pedagogical backbone of the platform. It combines a guided path, mixed exercise
+            formats, speaking practice, compact feedback, and adaptive reinforcement so grammar study feels active
+            instead of static.
+          </p>
+          <div class="pill-row">
+            <span class="pill">Level-based path</span>
+            <span class="pill">Mixed exercises</span>
+            <span class="pill">Microphone speaking</span>
+            <span class="pill">Adaptive review</span>
+            <span class="pill">Vocabulary integration</span>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Exercise Types</h2>
+          <ul class="list">
+            <li><strong>Multiple choice:</strong> select the correct translation or structure.</li>
+            <li><strong>Listening choice:</strong> hear a phrase and pick the right answer.</li>
+            <li><strong>Cloze:</strong> complete the missing part of a sentence.</li>
+            <li><strong>Dictation:</strong> listen and type the expected phrase.</li>
+            <li><strong>Error fixing:</strong> identify and repair the wrong fragment.</li>
+            <li><strong>Speech:</strong> speak the target sentence and receive phonetic feedback.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Lesson Flow</h2>
+          <ul class="list">
+            <li><strong>1. Unit entry:</strong> the learner opens a unit from the main path.</li>
+            <li><strong>2. Unit guide:</strong> the concept summary and quick objective are shown.</li>
+            <li><strong>3. Exercise run:</strong> questions advance with progress bar, hearts, and manual audio.</li>
+            <li><strong>4. Adaptive reinforcement:</strong> missed questions can return later in the same session.</li>
+            <li><strong>5. Completion:</strong> the final screen summarizes the unit and updates the path.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Pedagogical Feedback</h2>
+          <ul class="list">
+            <li><strong>Compact:</strong> feedback no longer takes over half of the screen.</li>
+            <li><strong>Contextual:</strong> it explains why the correct answer is correct.</li>
+            <li><strong>Granular:</strong> it distinguishes grammar, lexical, order, and phonetic issues.</li>
+            <li><strong>Conditional:</strong> error type and problematic excerpt only appear when the learner is wrong.</li>
+            <li><strong>Speech scoring:</strong> the speaking exercise reports pronunciation, completeness, and rhythm.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="section-grid">
+        <article class="card">
+          <h2>Module Integrations</h2>
+          <ul class="list">
+            <li><strong>My Vocabulary:</strong> important words and error-related words can be saved automatically.</li>
+            <li><strong>Error Notebook:</strong> recurring error patterns are stored for future reinforcement.</li>
+            <li><strong>Global Review:</strong> fragile concepts can feed the global spaced-review queue.</li>
+            <li><strong>Profile and reports:</strong> lesson outcomes contribute to the learner's broader progress view.</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Implementation Notes</h2>
+          <ul class="list">
+            <li><strong>Theme color:</strong> <code>#58cc02</code>.</li>
+            <li><strong>Typography:</strong> uses the same local <code>DIN Round Pro</code> family as the product.</li>
+            <li><strong>Persistence:</strong> progress supports local fallback and authenticated cloud sync.</li>
+            <li><strong>Purpose:</strong> this document is meant for product presentation and technical organization.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Module Scenes</h2>
+        <p>The scenes below recreate the main Grammar states in HTML/CSS, without using screenshots.</p>
+        <div class="scene-grid">
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Main path</strong>
+              <span>Current unit and unlocked progression.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-panel">
+                <strong>Current content: A1</strong>
+                <p>Visible path with unlocked nodes, guide access, and progress reading.</p>
+              </div>
+              <div class="mock-row">
+                <div class="mock-list-item"><strong>Dumbbell</strong><p>Greetings</p></div>
+                <div class="mock-list-item"><strong>Star</strong><p>How are you?</p></div>
+                <div class="mock-list-item"><strong>Book</strong><p>Scenario unit</p></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Exercise state</strong>
+              <span>Manual audio, progress, and answer options.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-panel">
+                <strong>Select the correct translation for "Good morning".</strong>
+                <p>Options: Good evening, Good morning, Good afternoon.</p>
+              </div>
+              <div class="mock-chip">Manual audio only</div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Pedagogical feedback</strong>
+              <span>Compact correction with concept reinforcement.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-panel">
+                <strong>Correct answer</strong>
+                <p>"Good morning" is used as a greeting during the morning.</p>
+              </div>
+              <div class="mock-chip">Concept: Greetings Time of Day</div>
+            </div>
+          </article>
+
+          <article class="scene-card">
+            <div class="scene-head">
+              <strong>Final result</strong>
+              <span>Session summary after finishing the unit.</span>
+            </div>
+            <div class="scene-body">
+              <div class="mock-row">
+                <div class="mock-metric"><span>Correct</span><strong>8</strong></div>
+                <div class="mock-metric"><span>Errors</span><strong>2</strong></div>
+                <div class="mock-metric"><span>Hearts</span><strong>4</strong></div>
+              </div>
+              <div class="mock-panel">
+                <strong>Unit completed</strong>
+                <p>The path is updated, progress is saved, and future review can be scheduled.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
