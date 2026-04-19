@@ -2822,6 +2822,7 @@ function LessonRunner({ unit, onClose, onComplete, resumeState, onSaveSession, s
     resumeState?.unitId === unit.id ? resumeState.summary || { correct: 0, wrong: 0 } : { correct: 0, wrong: 0 }
   );
   const [feedback, setFeedback] = useState(null);
+  const [pendingCompletion, setPendingCompletion] = useState(null);
   const [showGuide, setShowGuide] = useState(false);
   const [attemptLog, setAttemptLog] = useState(
     resumeState?.unitId === unit.id && Array.isArray(resumeState.attemptLog) ? resumeState.attemptLog : []
@@ -2900,8 +2901,7 @@ function LessonRunner({ unit, onClose, onComplete, resumeState, onSaveSession, s
       const nextSummary = { ...summary, correct: summary.correct + 1 };
       setSummary(nextSummary);
       if (stepIndex === sessionLessons.length - 1) {
-        setPhase("summary");
-        onComplete({
+        setPendingCompletion({
           unitId: unit.id,
           summary: nextSummary,
           attemptLog: nextLog,
@@ -2909,6 +2909,7 @@ function LessonRunner({ unit, onClose, onComplete, resumeState, onSaveSession, s
           adaptiveQueueSize: sessionLessons.length,
           adaptiveReview: Boolean(unit.adaptiveReview),
         });
+        setPhase("summary");
         return;
       }
       setStatus("correct");
@@ -2935,6 +2936,9 @@ function LessonRunner({ unit, onClose, onComplete, resumeState, onSaveSession, s
 
   const handleContinue = () => {
     if (phase === "summary") {
+      if (pendingCompletion) {
+        onComplete(pendingCompletion);
+      }
       onClose();
       return;
     }
@@ -3339,7 +3343,7 @@ export default function GrammarPage({ setCurrentView, color = "#58cc02" }) {
     [units, conceptScores, recurringErrors, sourceLanguage]
   );
 
-  const activeUnit = availableUnits.find((u) => u.id === activeUnitId) || null;
+  const activeUnit = availableUnits.find((u) => u.id === activeUnitId) || units.find((u) => u.id === activeUnitId) || reviewUnits.find((u) => u.id === activeUnitId) || null;
 
   const completedCount = units.filter((u) => u.completed).length;
 
@@ -3648,6 +3652,8 @@ export default function GrammarPage({ setCurrentView, color = "#58cc02" }) {
   );
 
 }
+
+
 
 
 

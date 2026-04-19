@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { getUiLabel } from "../lib/uiLabels";
 import { trackEvent } from "../lib/telemetry";
 
@@ -215,20 +215,26 @@ function getPersonByColor(hex) {
 
 
 const LANGUAGE_FLAG_MAP = {
-  "pt-BR": "????",
-  "en-US": "????",
-  "es-ES": "????",
-  "fr-FR": "????",
-  "it-IT": "????",
-  "de-DE": "????",
-  "ja-JP": "????",
-  "ko-KR": "????",
-  "zh-CN": "????",
+  "pt-BR": { code: "br", label: "Português" },
+  "en-US": { code: "gb", label: "English" },
+  "es-ES": { code: "es", label: "Español" },
+  "fr-FR": { code: "fr", label: "Français" },
+  "it-IT": { code: "it", label: "Italiano" },
+  "de-DE": { code: "de", label: "Deutsch" },
+  "ja-JP": { code: "jp", label: "日本語" },
+  "ko-KR": { code: "kr", label: "한국어" },
+  "zh-CN": { code: "cn", label: "中文" },
 };
 
 function getLanguageFlag(locale) {
-  if (!locale) return "ð";
-  return LANGUAGE_FLAG_MAP[locale] || "ð";
+  const entry = LANGUAGE_FLAG_MAP[String(locale || '').trim()];
+  if (!entry?.code) {
+    return { src: '', label: 'Idioma' };
+  }
+  return {
+    src: '/img/flags/' + entry.code + '.svg',
+    label: entry.label,
+  };
 }
 
 
@@ -3127,7 +3133,16 @@ export default function InitialPage({ switchToRegister, switchToLogin, authUser,
             <strong className="duo-welcome-name">{displayName}</strong>
           </div>
           <div className="duo-welcome-meta">
-            <span className="duo-welcome-flag">{learningLanguageFlag}</span>
+            {learningLanguageFlag?.src ? (
+              <img
+                className="duo-welcome-flag"
+                src={learningLanguageFlag.src}
+                alt={learningLanguageFlag.label}
+                title={learningLanguageFlag.label}
+              />
+            ) : (
+              <span className="duo-welcome-flag duo-welcome-flag-fallback">🌐</span>
+            )}
             <span className="duo-welcome-goal">{getUiLabel("welcome.daily_goal", "Daily goal")}:  {dailyGoalValue} min</span>
           </div>
         </div>
@@ -3687,7 +3702,7 @@ export default function InitialPage({ switchToRegister, switchToLogin, authUser,
 
                 <em>
 
-                  {difficultyLabel(item.difficulty)} · {getUiLabel("dashboard.error_rate", "error")} {Math.round(Number(item.error_pressure || 0) * 100)}%
+                  {difficultyLabel(item.difficulty)} Â· {getUiLabel("dashboard.error_rate", "error")} {Math.round(Number(item.error_pressure || 0) * 100)}%
                 </em>
 
               </article>
@@ -3735,7 +3750,7 @@ export default function InitialPage({ switchToRegister, switchToLogin, authUser,
                 <div>
                   <strong>{getWeekdayLabel(day.day_index)}</strong>
                   <p>{day.task}</p>
-                  <em>{day.minutes} min · {getModuleLabelByKey(day.module_key)}</em>
+                  <em>{day.minutes} min Â· {getModuleLabelByKey(day.module_key)}</em>
                 </div>
                 <button type="button" onClick={() => toggleWeeklyDayDone(day.day_index)}>
                   {day.status === "done" ? getUiLabel("dashboard.done", "Done") : getUiLabel("dashboard.mark", "Mark")}
@@ -4139,6 +4154,8 @@ export default function InitialPage({ switchToRegister, switchToLogin, authUser,
     </div>
   );
 }
+
+
 
 
 

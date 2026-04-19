@@ -3707,12 +3707,13 @@ export async function ensureDatabase() {
   await seedCommunityPosts();
   await seedWikiWords();
   await seedUiLabels();
-  await seedGrammarContent(pool);
-  await seedGrammarRelationalContent(pool);
-}
+    await seedGrammarContent(pool);
+    for (const grammarLevel of ["A1", "A2", "B1", "B2", "C1", "C2"]) {
+      await seedGrammarRelationalContent(pool, grammarLevel);
+    }
+  }
 
 export { pool };
-
 
 
 

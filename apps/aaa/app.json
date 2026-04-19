@@ -1,0 +1,27 @@
+﻿{
+  "expo": {
+    "name": "My Vocab 100k",
+    "slug": "my-vocab-100k",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.usuario.myvocab100k"
+    },
+    "extra": {
+      "appOwner": "usuario",
+      "publicVocabApiUrl": "",
+      "publicGroqApiKey": "",
+      "eas": {
+        "projectId": ""
+      }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-sqlite"
+    ]
+  }
+}

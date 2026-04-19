@@ -1,4 +1,4 @@
-@font-face {
+﻿@font-face {
   font-family: "DIN Round Pro";
   src: local("DIN Round Pro Light"), local("DINRoundPro-Light"), url('/fonts/dinroundpro_light.otf') format('opentype');
   font-style: normal;
@@ -11811,6 +11811,20 @@ h6,
 }
 
 .duo-welcome-flag {
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  display: inline-block;
+}
+
+.duo-welcome-flag-fallback {
+  width: auto;
+  height: auto;
+  border: 0;
+  box-shadow: none;
   font-size: 18px;
 }
 
@@ -11854,4 +11868,5 @@ h6,
 .duo-logout-btn:hover {
   background: #344453;
 }
+
 

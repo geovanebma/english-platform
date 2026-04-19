@@ -1,0 +1,33 @@
+{
+  "name": "personal-vocab-android",
+  "private": true,
+  "version": "0.1.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "server": "node server/index.mjs",
+    "build:wordbank": "node scripts/build-word-bank.mjs",
+    "build:android:apk": "eas build -p android --profile preview",
+    "build:android:aab": "eas build -p android --profile production",
+    "build:android:local": "eas build -p android --profile preview --local"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "expo": "~54.0.33",
+    "expo-asset": "~12.0.12",
+    "expo-speech": "~14.0.8",
+    "expo-sqlite": "~16.0.10",
+    "expo-status-bar": "~3.0.9",
+    "express": "^5.1.0",
+    "groq-sdk": "^0.37.0",
+    "react": "^19.1.0",
+    "react-native": "^0.81.5"
+  },
+  "devDependencies": {
+    "babel-preset-expo": "^55.0.13",
+    "eas-cli": "^18.5.0"
+  }
+}

@@ -1,0 +1,25 @@
+﻿{
+  "cli": {
+    "version": ">= 16.24.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_GROQ_API_KEY": ""
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_GROQ_API_KEY": ""
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}
